@@ -3,12 +3,11 @@ merge FNA to step "merge"
 primer.txt > primer.fna
 fq2f2 to seq converter
 rewrite merge and fna
-
-To do list
-
 check PolB_homology_search.faa
 blastp and diamond judgement
 pplacer to main pipeline
+
+To do list
 
 name of fna and faa
 

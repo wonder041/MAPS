@@ -302,8 +302,7 @@ BARCODE_ARR=$(ls ${INPUT_DIR}*${READ_PATTERN[0]}|grep -v _np|rev |cut -d/ -f1|re
     LOG_PATH=${MERGE_I_DIR}${BARCODE}/log
     echo "$FLASH_PATH -t 2 -m ${MERGE_OVERLAP_MIN} -M 300 -x ${MERGE_ERROR_RATE} \
     ${R1_INPUT_PATH} ${R2_INPUT_PATH} -d ${MERGE_I_DIR}${BARCODE}/ &> ${LOG_PATH}"
-done)
-# |parallel -j `expr ${THREADS} / 2`
+done)|parallel -j `expr ${THREADS} / 2`
 
 #Explanation: flash
    #takes two input files and merges them.
@@ -329,9 +328,7 @@ BARCODE_ARR=$(ls -p ${MERGE_I_DIR}|rev |cut -d/ -f2|rev)
     && ${PYTHON_PATH} ${SCR_TRIM_MERGE_O} ${MERGE_O_DIR}${BARCODE}/out.extendedFrags.fastq \
     ${R1_INPUT_PATH} ${R2_INPUT_PATH} ${MERGE_O_DIR}${BARCODE}.fastq"
         
-done
-)
-# |parallel -j `expr ${THREADS} / 2`
+done)|parallel -j `expr ${THREADS} / 2`
 
 #Merge Rescue
 BARCODE_ARR=$(ls -p ${MERGE_O_DIR}|rev |grep ^/|cut -d/ -f2|rev)
@@ -501,11 +498,11 @@ Footer
 
 # A5G40
 # CUTADAPT_G40
-# MERGE
-# DEDUPLICATION
-# FAA
+MERGE
+DEDUPLICATION
+FAA
 BLASTP
-# ALIGNMENT
+ALIGNMENT
 
 
 Logger "-Finish Pepeline"
