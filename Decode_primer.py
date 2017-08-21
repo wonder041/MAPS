@@ -20,7 +20,7 @@ for nMP,MP in enumerate(("MP10","MP20","MP5")):
 
 #build PP list from reading barcode
 if "PP" in barcode:
-    PP_arr=["PP"+barcode.split("PP")[1].split("c")[0]]
+    PP_arr=["PP"+str(int(barcode.split("PP")[1].split("c")[0]))]
 elif "MP" in barcode:
     MP=barcode.split("-")[-2]
     mix=barcode.split("-")[-1]
