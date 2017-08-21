@@ -19,20 +19,18 @@
 READ_PATTERN[0]="_R1.fastq"
 READ_PATTERN[1]="_R2.fastq"
 
-INPUT_PATH=$1
-OUTPUT_DIR=$2
-MERGE_ERROR_RATE=$3
-MERGE_OVERLAP_MIN=$4
+TRIMMOMATIC_PATH="$1 $2 $3"
+FLASH_PATH=$4
+INPUT_PATH=$5
+OUTPUT_DIR=$6
+MERGE_ERROR_RATE=$7
+MERGE_OVERLAP_MIN=$8
 
 BARCODE=$(echo "${INPUT_PATH}"|rev|cut -d/ -f1|rev)
 OUTPUT_PATH=${OUTPUT_DIR}${BARCODE}.fastq
 LOG_PATH=${OUTPUT_DIR}${BARCODE}/log
 
 mkdir -p ${OUTPUT_DIR}${BARCODE}/
-
-TRIMMOMATIC_PATH="/usr/bin/java -jar /bio/package/trimmomatic/0.33/trimmomatic-0.33.jar"
-FLASH_PATH="/user1/scl1/yanzeli/LinuxApp/FLASH-1.2.11/flash"
-
 
 TRIM_MERGE(){
     mkdir -p ${OUTPUT_DIR}${BARCODE}/${QUAL_NOW}_${SIZE_NOW}/
@@ -45,7 +43,7 @@ TRIM_MERGE(){
    /dev/null \
    SLIDINGWINDOW:${SIZE_NOW}:${QUAL_NOW} \
    &> /dev/null
-   $FLASH_PATH \
+   ${FLASH_PATH} \
     -t 2 \
     -m 20 \
     -M 300 \

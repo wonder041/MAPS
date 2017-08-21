@@ -95,7 +95,7 @@ READ_PATTERN[1]=${READ_PATTERN[1]:-"_R2.fastq"}
 #build build-in script path
 Set_default_check_file SCR_DECODE_PRIMER ${SCRIPTS_DIR}Decode_primer.py
 Set_default_check_file SCR_TRIM_MERGE_O ${SCRIPTS_DIR}Trim_merge_O.py
-Set_default_check_file SCR_TRIM_RESURE ${SCRIPTS_DIR}Trim_Rescue.sh
+Set_default_check_file SCR_MERGE_RESURE ${SCRIPTS_DIR}Merge_Rescue.sh
 Set_default_check_file SCR_SEQ_CONVERTER ${SCRIPTS_DIR}Seq_convert.py
 Set_default_check_file SCR_TRANSLATE_RENAME ${SCRIPTS_DIR}Translate_rename.py
 Set_default_check_file SCR_TRIM_COMMON_REGION ${SCRIPTS_DIR}Trim_common_region.py
@@ -150,7 +150,7 @@ Set_default_check_executable CUTADAPT_PATH /user1/scl1/yanzeli/.local/bin/cutada
 
 #build software path from module
 source /usr/share/modules/init/bash
-module load "trimmomatic/0.35 pplacer/1.1.alpha18 mafft/7.310 flash/1.2.11 python/3.4.2 R/3.3.1 cd-hit/4.6.8 blast+/2.5.0 hmmer/3.1b2" > /dev/null
+module load "trimmomatic/0.35 pplacer/1.1.alpha18 mafft/7.310 flash/1.2.11 python/3.4.2 R/3.3.1 cd-hit/4.6.8 blast+/2.5.0 hmmer/3.1b2 diamond/0.9.9" > /dev/null
 
 TRIMMOMATIC_PATH=${TRIMMOMATIC_PATH:-"/usr/bin/java -jar /usr/appli/freeware/trimmomatic/0.35/trimmomatic-0.35.jar"}
 Set_default_check_executable PPLACER_PATH /usr/appli/freeware/pplacer/1.1.alpha19/pplacer
@@ -166,6 +166,7 @@ Set_default_check_executable CDHIT_EST_PATH /usr/appli/freeware/cd-hit/4.6.8/cd-
 Set_default_check_executable BLASTP_PATH /usr/appli/freeware/blast/2.5.0+/bin/blastp
 Set_default_check_executable BLASTDBCMD_PATH /usr/appli/freeware/blast/2.5.0+/bin/blastdbcmd
 Set_default_check_executable MAKEBLASTDB_PATH /usr/appli/freeware/blast/2.5.0+/bin/makeblastdb
+Set_default_check_executable DIAMOND_PATH /usr/appli/freeware/diamond/0.9.9/diamond
 
 Logger "--Finish building software path"
 }
@@ -209,17 +210,6 @@ TIME_P=${TIME}
 }
 
 
-
-
-# A5G40(){
-# Header
-# echo "I am function!"
-# Footer
-# }
-# A5G40
-
-# exit 0
-
 A5G40(){
 Header
 
@@ -233,7 +223,7 @@ BARCODE_ARR=$(ls ${INPUT_DIR}*${READ_PATTERN[0]}|rev |cut -d/ -f1|rev|cut -d_ -f
     R1_NOPAIR_OUTPUT_PATH=${OUTPUT_DIR}${BARCODE}_np${READ_PATTERN[0]}
     R2_NOPAIR_OUTPUT_PATH=${OUTPUT_DIR}${BARCODE}_np${READ_PATTERN[1]}    
     LOG_PATH=${OUTPUT_DIR}${BARCODE}.log    
-    echo -n "${TRIMMOMATIC_PATH} PE -threads 2 -phred33 -trimlog ${LOG_PATH} \
+    echo "${TRIMMOMATIC_PATH} PE -threads 2 -phred33 -trimlog ${LOG_PATH} \
     ${R1_INPUT_PATH} ${R2_INPUT_PATH} ${R1_OUTPUT_PATH} ${R1_NOPAIR_OUTPUT_PATH} \
     ${R2_OUTPUT_PATH} ${R2_NOPAIR_OUTPUT_PATH} AVGQUAL:5 MINLEN:40 &> /dev/null "
 done)|parallel -j `expr ${THREADS} / 2`
@@ -253,10 +243,9 @@ BARCODE_ARR=$(ls ${INPUT_DIR}*${READ_PATTERN[0]}|grep -v _np|rev |cut -d/ -f1|re
     R2_OUTPUT_PATH=${OUTPUT_DIR}${BARCODE}${READ_PATTERN[1]}
     LOG_PATH=${OUTPUT_DIR}${BARCODE}.log    
     PRIMER_CMD=$(${PYTHON_PATH} ${SCR_DECODE_PRIMER} ${REF_PRIMER} ${REF_MIXTURE} ${BARCODE})
-    #echo "${CUTADAPT_PATH} --minimum-length 40 --discard-untrimmed -e 0.1 ${PRIMER_CMD} \
-    #-o ${R1_OUTPUT_PATH} -p ${R2_OUTPUT_PATH} ${R1_INPUT_PATH} ${R2_INPUT_PATH} &> ${LOG_PATH}"    
-done)
-# |parallel -j `expr ${THREADS} / 1`
+    echo "${CUTADAPT_PATH} --minimum-length 40 --discard-untrimmed -e 0.1 ${PRIMER_CMD} \
+    -o ${R1_OUTPUT_PATH} -p ${R2_OUTPUT_PATH} ${R1_INPUT_PATH} ${R2_INPUT_PATH} &> ${LOG_PATH}"    
+done)|parallel -j `expr ${THREADS} / 1`
 
 #delete empty files
 find ${OUTPUT_DIR} -name "*" -type f -size 0c | xargs -n 1 rm &> /dev/null
@@ -291,7 +280,7 @@ Footer
 
 #this function uses FLASH
 MERGE(){
-header
+Header
 
 MERGE_ERROR_RATE=0.1
 MERGE_OVERLAP_MIN=100
@@ -313,7 +302,8 @@ BARCODE_ARR=$(ls ${INPUT_DIR}*${READ_PATTERN[0]}|grep -v _np|rev |cut -d/ -f1|re
     LOG_PATH=${MERGE_I_DIR}${BARCODE}/log
     echo "$FLASH_PATH -t 2 -m ${MERGE_OVERLAP_MIN} -M 300 -x ${MERGE_ERROR_RATE} \
     ${R1_INPUT_PATH} ${R2_INPUT_PATH} -d ${MERGE_I_DIR}${BARCODE}/ &> ${LOG_PATH}"
-done)|parallel -j `expr ${THREADS} / 2`
+done)
+# |parallel -j `expr ${THREADS} / 2`
 
 #Explanation: flash
    #takes two input files and merges them.
@@ -334,24 +324,28 @@ BARCODE_ARR=$(ls -p ${MERGE_I_DIR}|rev |cut -d/ -f2|rev)
     
     mkdir -p ${MERGE_O_DIR}${BARCODE}
     LOG_PATH=${MERGE_O_DIR}${BARCODE}/log
-    echo "$FLASH_PATH -t 2 -m ${MERGE_OVERLAP_MIN} -M 300 -x ${MERGE_ERROR_RATE} \
+    echo "${FLASH_PATH} -t 2 -m ${MERGE_OVERLAP_MIN} -M 300 -x ${MERGE_ERROR_RATE} \
     -O ${R1_INPUT_PATH} ${R2_INPUT_PATH} -d ${MERGE_O_DIR}${BARCODE}/ &> ${LOG_PATH} \
-    && ${PYTHON_PATH} ${SCRIPTS_DIR}Trim_O.py ${MERGE_O_DIR}${BARCODE}/out.extendedFrags.fastq \
+    && ${PYTHON_PATH} ${SCR_TRIM_MERGE_O} ${MERGE_O_DIR}${BARCODE}/out.extendedFrags.fastq \
     ${R1_INPUT_PATH} ${R2_INPUT_PATH} ${MERGE_O_DIR}${BARCODE}.fastq"
         
 done
-)|parallel -j `expr ${THREADS} / 2`
+)
+# |parallel -j `expr ${THREADS} / 2`
 
 #Merge Rescue
 BARCODE_ARR=$(ls -p ${MERGE_O_DIR}|rev |grep ^/|cut -d/ -f2|rev)
 
 (for BARCODE in $BARCODE_ARR;do
-    echo "sh ${SCRIPTS_DIR}BestTrimRescue.sh ${MERGE_O_DIR}${BARCODE} ${MERGE_RESCUE_DIR} ${MERGE_ERROR_RATE} ${MERGE_OVERLAP_MIN}"
+    echo "sh ${SCR_MERGE_RESURE} ${TRIMMOMATIC_PATH} ${FLASH_PATH} ${MERGE_O_DIR}${BARCODE} ${MERGE_RESCUE_DIR} ${MERGE_ERROR_RATE} ${MERGE_OVERLAP_MIN}"
     
-    # BARCODE=$1
-    # OUTPUT_DIR=$2
-    # MERGE_ERROR_RATE=$3
-    # MERGE_OVERLAP_MIN=$4
+    # TRIMMOMATIC_PATH="$1 $2 $3"
+    # FLASH_PATH=$4
+    # INPUT_PATH=$5
+    # OUTPUT_DIR=$6
+    # MERGE_ERROR_RATE=$7
+    # MERGE_OVERLAP_MIN=$8
+
     
 done
 )|parallel -j `expr ${THREADS} / 1`
@@ -363,7 +357,7 @@ BARCODE_ARR=$(ls ${INPUT_DIR}*${READ_PATTERN[0]}|grep -v _np|rev |cut -d/ -f1|re
 (for BARCODE in $BARCODE_ARR;do
     echo "cat ${MERGE_I_DIR}${BARCODE}/out.extendedFrags.fastq ${MERGE_O_DIR}${BARCODE}.fastq \
     ${MERGE_RESCUE_DIR}${BARCODE}.fastq > ${OUTPUT_DIR}${BARCODE}.fastq \
-    && ${PYTHON_PATH} ${SCRIPTS_DIR}fq2fa.py ${OUTPUT_DIR}${BARCODE}.fastq ${OUTPUT_DIR}${BARCODE}.fna"
+    && ${PYTHON_PATH} ${SCR_SEQ_CONVERTER} ${OUTPUT_DIR}${BARCODE}.fastq ${OUTPUT_DIR}${BARCODE}.fna"
 done)|sh
 
 Footer
@@ -429,28 +423,35 @@ Footer
 
 
 BLASTP(){
-header
+Header
 
-REF_FOR_BLASTP=${REFERENCES_DIR}"ref_for_blastp_published.faa"
-# make ref_for_blastp
-if [[ ! -s "${REF_FOR_BLASTP}.phd" ]] ;then
-    $MAKEBLASTDB_PATH -dbtype prot -in $REF_FOR_BLASTP -parse_seqids -hash_index > $REF_FOR_BLASTP.log
+# make REF_POLB_HOMOLOGY_SEARCH
+if [ "$DIAMOND" = "1" ];then
+    if [[ ! -s "${REF_POLB_HOMOLOGY_SEARCH}.dmnd" ]] ;then
+        ${DIAMOND_PATH} makedb --in ${REF_POLB_HOMOLOGY_SEARCH} --db ${REF_POLB_HOMOLOGY_SEARCH} > ${REF_POLB_HOMOLOGY_SEARCH}.dmnd.log
+    fi
+else
+    if [[ ! -s "${REF_POLB_HOMOLOGY_SEARCH}.phd" ]] ;then
+        ${MAKEBLASTDB_PATH} -dbtype prot -in ${REF_POLB_HOMOLOGY_SEARCH} -parse_seqids -hash_index > ${REF_POLB_HOMOLOGY_SEARCH}.log
+    fi
 fi
+
 
 BARCODE_ARR=$(ls ${INPUT_DIR}*.faa|rev |cut -d/ -f1|rev|cut -d. -f1)
 (for BARCODE in $BARCODE_ARR;do
-    echo "
-    
-    
-    ${BLASTP_PATH} -query ${INPUT_DIR}$BARCODE.faa -db $REF_FOR_BLASTP\
-    -out ${OUTPUT_DIR}$BARCODE.res -evalue 1e-5 -outfmt 6 -max_target_seqs 1 \
-	&& (cat ${OUTPUT_DIR}$BARCODE.res|grep MIMI ; cat ${OUTPUT_DIR}$BARCODE.res|grep gene)\
-    |cut -f1|sort -u > ${OUTPUT_DIR}$BARCODE.tit \
-	&& $BLASTDBCMD_PATH -db ${INPUT_DIR}$BARCODE.faa -entry_batch ${OUTPUT_DIR}$BARCODE.tit \
-	-out ${OUTPUT_DIR}$BARCODE.faa \
-	&& cat ${OUTPUT_DIR}$BARCODE.tit |cut -dF -f1|sort -u > ${OUTPUT_DIR}$BARCODE_fna.tit \
+    if [ "$DIAMOND" = "1" ];then
+        echo -n "${DIAMOND_PATH} blastp -p 1 -e 1e-5 -k 1 -d ${REF_POLB_HOMOLOGY_SEARCH} \
+        -q ${INPUT_DIR}${BARCODE}.faa -o ${OUTPUT_DIR}${BARCODE}.res > ${OUTPUT_DIR}${BARCODE}.log"
+    else
+        echo -n "${BLASTP_PATH} -query ${INPUT_DIR}${BARCODE}.faa -db $REF_POLB_HOMOLOGY_SEARCH \
+        -out ${OUTPUT_DIR}${BARCODE}.res -evalue 1e-5 -outfmt 6 -max_target_seqs 1 "
+    fi
+	echo "&& cat ${OUTPUT_DIR}$BARCODE.res|grep MEGA|cut -f1|sort -u > ${OUTPUT_DIR}$BARCODE.tit \
+	&& $BLASTDBCMD_PATH -db ${INPUT_DIR}$BARCODE.faa \
+    -entry_batch ${OUTPUT_DIR}$BARCODE.tit -out ${OUTPUT_DIR}$BARCODE.faa \
+	&& cat ${OUTPUT_DIR}$BARCODE.tit |cut -dF -f1|sort -u > ${OUTPUT_DIR}${BARCODE}_fna.tit \
 	&& $BLASTDBCMD_PATH -db ${INPUT_DIR}$BARCODE.fna \
-	-entry_batch ${OUTPUT_DIR}$BARCODE_fna.tit -out ${OUTPUT_DIR}$BARCODE.fna"
+	-entry_batch ${OUTPUT_DIR}${BARCODE}_fna.tit -out ${OUTPUT_DIR}$BARCODE.fna"
 done)|parallel -j `expr ${THREADS} / 1`
 
 Footer
@@ -474,41 +475,36 @@ Footer
 }
 
 ALIGNMENT(){
-header
+Header
 
 BARCODE_ARR=$(ls ${INPUT_DIR}*.faa|rev |cut -d/ -f1|rev|cut -d. -f1)
 
 (for BARCODE in $BARCODE_ARR;do
     echo "${MAFFT_PATH} --quiet --thread ${THREADS} --6merpair --addfragments ${INPUT_DIR}$BARCODE.faa \
-    ${REFERENCES_DIR}Aln_ref.aln > ${OUTPUT_DIR}$BARCODE.aln \
-    && ${PYTHON_PATH} ${SCRIPTS_DIR}Trim_by_ref.py ${REFERENCES_DIR}PolB_MIMI_tara_primer_nuc_1087.aln ${REFERENCES_DIR}PolB_MIMI_tara_923.aln \
+    ${REF_DESIGN_PROT_ALN} > ${OUTPUT_DIR}$BARCODE.aln \
+    && ${PYTHON_PATH} ${SCR_TRIM_COMMON_REGION} ${REF_DESIGN_PRIMER_NUCL_ALN} ${REF_DESIGN_PROT_ALN} \
     ${OUTPUT_DIR}$BARCODE.aln ${INPUT_DIR}$BARCODE.fna ${OUTPUT_DIR}${BARCODE}_Trimed.faa ${OUTPUT_DIR}${BARCODE}_Trimed.fna \
-    
-    ${MAFFT_PATH} --quiet --thread ${THREADS} --6merpair --addfragments ${QUERY_SEQ} ${REF_ALN} > ${QUERY_SEQ}.combo.fasta
-# ${MAFFT_PATH} --quiet --thread 16 --keeplength --6merpair --addfragments ${QUERY_SEQ} ${REF_ALN} > ${QUERY_SEQ}.combo.fasta
-# ${MAFFT_PATH} --quiet --thread 16 --keeplength --addfragments ${QUERY_SEQ} ${REF_ALN} > ${QUERY_SEQ}.combo.fasta
-${PPLACER_PATH} -j ${THREADS} --verbosity 0 -o ${QUERY_SEQ}.combo.jplace -t ${RAXML_RESULT} -s ${RAXML_INFO} ${QUERY_SEQ}.combo.fasta
-python /user1/scl1/yanzeli/Megaviridae/Scripts_Merge/View_jplace.py ${QUERY_SEQ}.combo.jplace > ${QUERY_SEQ}.tit
-    && sh ${SCRIPTS_DIR}Pplacer_check.sh ${OUTPUT_DIR}${BARCODE}_Trimed.faa ${THREADS}\
-    
-    
-    && $MAKEBLASTDB_PATH -dbtype prot -in ${OUTPUT_DIR}${BARCODE}_Trimed.faa -parse_seqids -hash_index > ${OUTPUT_DIR}${BARCODE}_Trimed.faa.log \
-    && $MAKEBLASTDB_PATH -dbtype nucl -in ${OUTPUT_DIR}${BARCODE}_Trimed.fna -parse_seqids -hash_index > ${OUTPUT_DIR}${BARCODE}_Trimed.fna.log \
-    && $BLASTDBCMD_PATH -db ${OUTPUT_DIR}${BARCODE}_Trimed.faa -entry_batch ${OUTPUT_DIR}${BARCODE}_Trimed.faa.tit -out ${OUTPUT_DIR}${BARCODE}_Pplacer.faa \
-    && ${PYTHON_PATH} ${SCRIPTS_DIR}Get_pplacer_fna.py ${OUTPUT_DIR}${BARCODE}_Trimed.faa.tit ${OUTPUT_DIR}${BARCODE}_Trimed.fna ${OUTPUT_DIR}${BARCODE}_Trimed.fna.tit \
-    && $BLASTDBCMD_PATH -db ${OUTPUT_DIR}${BARCODE}_Trimed.fna -entry_batch ${OUTPUT_DIR}${BARCODE}_Trimed.fna.tit -out ${OUTPUT_DIR}${BARCODE}_Pplacer.fna"
+    && ${MAFFT_PATH} --quiet --thread ${THREADS} --6merpair --addfragments ${OUTPUT_DIR}${BARCODE}_Trimed.faa \
+    ${REF_PPLACER_ALN} > ${OUTPUT_DIR}${BARCODE}_Trimed.faa.combo.fasta \
+    && ${PPLACER_PATH} -j ${THREADS} --verbosity 0 -o ${OUTPUT_DIR}${BARCODE}_Trimed.faa.combo.jplace \
+    -t ${REF_PPLACER_RES} -s ${REF_PPLACER_INFO} ${OUTPUT_DIR}${BARCODE}_Trimed.faa.combo.fasta > /dev/null \
+    && ${PYTHON_PATH} ${SCR_PPLACER_DECODE} ${OUTPUT_DIR}${BARCODE}_Trimed.faa.combo.jplace > ${OUTPUT_DIR}${BARCODE}_Trimed.faa.tit \
+    && ${MAKEBLASTDB_PATH} -dbtype prot -in ${OUTPUT_DIR}${BARCODE}_Trimed.faa -parse_seqids -hash_index > ${OUTPUT_DIR}${BARCODE}_Trimed.faa.log \
+    && ${MAKEBLASTDB_PATH} -dbtype nucl -in ${OUTPUT_DIR}${BARCODE}_Trimed.fna -parse_seqids -hash_index > ${OUTPUT_DIR}${BARCODE}_Trimed.fna.log \
+    && ${BLASTDBCMD_PATH} -db ${OUTPUT_DIR}${BARCODE}_Trimed.faa -entry_batch ${OUTPUT_DIR}${BARCODE}_Trimed.faa.tit -out ${OUTPUT_DIR}${BARCODE}_Pplacer.faa \
+    && ${PYTHON_PATH} ${SCR_PPLACER_FNA_ID} ${OUTPUT_DIR}${BARCODE}_Trimed.faa.tit ${OUTPUT_DIR}${BARCODE}_Trimed.fna ${OUTPUT_DIR}${BARCODE}_Trimed.fna.tit \
+    && ${BLASTDBCMD_PATH} -db ${OUTPUT_DIR}${BARCODE}_Trimed.fna -entry_batch ${OUTPUT_DIR}${BARCODE}_Trimed.fna.tit -out ${OUTPUT_DIR}${BARCODE}_Pplacer.fna"
 done) |sh
 
-footer
+Footer
 }
 
 # A5G40
-CUTADAPT_G40
+# CUTADAPT_G40
 # MERGE
-# FNA
 # DEDUPLICATION
 # FAA
-# BLASTP
+BLASTP
 # ALIGNMENT
 
 
