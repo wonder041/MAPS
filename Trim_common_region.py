@@ -121,7 +121,7 @@ def Gen_str(pos_tup):
 
 
 fileseg_gen = Split(input_faa_with_ref_path)
-pool = multiprocessing.Pool(5)
+pool = multiprocessing.Pool(4)
 str_gen = pool.imap_unordered(Gen_str, fileseg_gen)
 
 trim_fna_dic = {}

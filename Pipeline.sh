@@ -344,8 +344,7 @@ BARCODE_ARR=$(ls -p ${MERGE_O_DIR}|rev |grep ^/|cut -d/ -f2|rev)
     # MERGE_OVERLAP_MIN=$8
 
     
-done
-)|parallel -j `expr ${THREADS} / 1`
+done)|parallel -j `expr ${THREADS} / 1`
 
 
 
@@ -355,7 +354,7 @@ BARCODE_ARR=$(ls ${INPUT_DIR}*${READ_PATTERN[0]}|grep -v _np|rev |cut -d/ -f1|re
     echo "cat ${MERGE_I_DIR}${BARCODE}/out.extendedFrags.fastq ${MERGE_O_DIR}${BARCODE}.fastq \
     ${MERGE_RESCUE_DIR}${BARCODE}.fastq > ${OUTPUT_DIR}${BARCODE}.fastq \
     && ${PYTHON_PATH} ${SCR_SEQ_CONVERTER} ${OUTPUT_DIR}${BARCODE}.fastq ${OUTPUT_DIR}${BARCODE}.fna"
-done)|sh
+done)|parallel -j `expr ${THREADS} / 1`
 
 Footer
 }
@@ -477,13 +476,13 @@ Header
 BARCODE_ARR=$(ls ${INPUT_DIR}*.faa|rev |cut -d/ -f1|rev|cut -d. -f1)
 
 (for BARCODE in $BARCODE_ARR;do
-    echo "${MAFFT_PATH} --quiet --thread ${THREADS} --6merpair --addfragments ${INPUT_DIR}$BARCODE.faa \
+    echo "${MAFFT_PATH} --quiet --thread 4 --6merpair --addfragments ${INPUT_DIR}$BARCODE.faa \
     ${REF_DESIGN_PROT_ALN} > ${OUTPUT_DIR}$BARCODE.aln \
     && ${PYTHON_PATH} ${SCR_TRIM_COMMON_REGION} ${REF_DESIGN_PRIMER_NUCL_ALN} ${REF_DESIGN_PROT_ALN} \
     ${OUTPUT_DIR}$BARCODE.aln ${INPUT_DIR}$BARCODE.fna ${OUTPUT_DIR}${BARCODE}_Trimed.faa ${OUTPUT_DIR}${BARCODE}_Trimed.fna \
-    && ${MAFFT_PATH} --quiet --thread ${THREADS} --6merpair --addfragments ${OUTPUT_DIR}${BARCODE}_Trimed.faa \
+    && ${MAFFT_PATH} --quiet --thread 4 --6merpair --addfragments ${OUTPUT_DIR}${BARCODE}_Trimed.faa \
     ${REF_PPLACER_ALN} > ${OUTPUT_DIR}${BARCODE}_Trimed.faa.combo.fasta \
-    && ${PPLACER_PATH} -j ${THREADS} --verbosity 0 -o ${OUTPUT_DIR}${BARCODE}_Trimed.faa.combo.jplace \
+    && ${PPLACER_PATH} -j 4 --verbosity 0 -o ${OUTPUT_DIR}${BARCODE}_Trimed.faa.combo.jplace \
     -t ${REF_PPLACER_RES} -s ${REF_PPLACER_INFO} ${OUTPUT_DIR}${BARCODE}_Trimed.faa.combo.fasta > /dev/null \
     && ${PYTHON_PATH} ${SCR_PPLACER_DECODE} ${OUTPUT_DIR}${BARCODE}_Trimed.faa.combo.jplace > ${OUTPUT_DIR}${BARCODE}_Trimed.faa.tit \
     && ${MAKEBLASTDB_PATH} -dbtype prot -in ${OUTPUT_DIR}${BARCODE}_Trimed.faa -parse_seqids -hash_index > ${OUTPUT_DIR}${BARCODE}_Trimed.faa.log \
@@ -491,7 +490,7 @@ BARCODE_ARR=$(ls ${INPUT_DIR}*.faa|rev |cut -d/ -f1|rev|cut -d. -f1)
     && ${BLASTDBCMD_PATH} -db ${OUTPUT_DIR}${BARCODE}_Trimed.faa -entry_batch ${OUTPUT_DIR}${BARCODE}_Trimed.faa.tit -out ${OUTPUT_DIR}${BARCODE}_Pplacer.faa \
     && ${PYTHON_PATH} ${SCR_PPLACER_FNA_ID} ${OUTPUT_DIR}${BARCODE}_Trimed.faa.tit ${OUTPUT_DIR}${BARCODE}_Trimed.fna ${OUTPUT_DIR}${BARCODE}_Trimed.fna.tit \
     && ${BLASTDBCMD_PATH} -db ${OUTPUT_DIR}${BARCODE}_Trimed.fna -entry_batch ${OUTPUT_DIR}${BARCODE}_Trimed.fna.tit -out ${OUTPUT_DIR}${BARCODE}_Pplacer.fna"
-done) |sh
+done)|parallel -j `expr ${THREADS} / 4`
 
 Footer
 }
