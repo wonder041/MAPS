@@ -6,8 +6,8 @@ rewrite merge and fna
 check PolB_homology_search.faa
 blastp and diamond judgement
 pplacer to main pipeline
+add / for input and output automatically
 
 To do list
 
 name of fna and faa
-

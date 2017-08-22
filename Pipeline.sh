@@ -30,9 +30,15 @@ while [ "$1" != "" ]; do
     case $1 in
         -i | -in )              shift
                                 SOURCES_DIR=$1
+                                if [ "${SOURCES_DIR: -1}" != "/" ];then
+                                    SOURCES_DIR="${SOURCES_DIR}/"
+                                fi
                                 ;;
         -o | -out )             shift
                                 OUTPUTS_DIR=$1
+                                if [ "${OUTPUTS_DIR: -1}" != "/" ];then
+                                    OUTPUTS_DIR="${OUTPUTS_DIR}/"
+                                fi
                                 ;;
         -t | --threads )        shift
                                 THREADS=$1
@@ -495,8 +501,8 @@ done)|parallel -j `expr ${THREADS} / 4`
 Footer
 }
 
-# A5G40
-# CUTADAPT_G40
+A5G40
+CUTADAPT_G40
 MERGE
 DEDUPLICATION
 FAA
