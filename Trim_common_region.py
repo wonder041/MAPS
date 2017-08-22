@@ -5,18 +5,6 @@ import math
 import io
 import sys
 
-
-# for test
-# input_faa_path = "/user1/scl1/yanzeli/Megaviridae/Outputs_170213_ALL/8_Alignment/Raw_nR.aln"
-# input_fna_path = "/user1/scl1/yanzeli/Megaviridae/Outputs_170213_ALL/6_Faa/Raw.fna"
-# output_faa_path = "/user1/scl1/yanzeli/Megaviridae/Outputs_170213_ALL/8_Alignment/Trimed.faa"
-# output_fna_path = "/user1/scl1/yanzeli/Megaviridae/Outputs_170213_ALL/8_Alignment/Trimed.fna"
-
-# ref_nucl_path="/user1/scl1/yanzeli/Megaviridae/References/PolB_MIMI_tara_primer_nuc_1087.aln"
-# ref_prot_path="/user1/scl1/yanzeli/Megaviridae/References/PolB_MIMI_tara_923.aln"
-# input_ref_path = "/user1/scl1/yanzeli/Megaviridae/Outputs_170213_ALL/8_Alignment/Raw_R.aln"
-
-# ref_nucl_path, ref_prot_path, input_ref_path, input_faa_path, input_fna_path, output_faa_path, output_fna_path = sys.argv[1:]
 ref_nucl_path, ref_prot_path, input_faa_with_ref_path, input_fna_path, output_faa_path, output_fna_path = sys.argv[1:]
 
 aln_nuc_len = len(next(SeqIO.parse(ref_nucl_path, "fasta")))
@@ -54,7 +42,7 @@ PR_min = aln_len
 PL_max = 0
 
 for seqr in SeqIO.parse(input_faa_with_ref_path, "fasta"):
-    if seqr.id.startswith("MIMI"):
+    if not seqr.id.startswith("MIMI"):
         break
     pos_in_aln_arr = list(Gen_pos_in_aln(str(seqr.seq)))
 

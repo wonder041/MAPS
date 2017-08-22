@@ -40,18 +40,3 @@ for placements_dic in jplace_dic["placements"]:
 
     if query_cate_set == {"MIMI"}:
         print(*query_name_arr,sep="\n")
-
-    # for query_name in query_name_arr:
-       # name_cate_dic[query_name]=query_cate_set
-
-# import Check_OTU_size
-# name_size_dic=Check_OTU_size.Get_dic(jplace_path.replace("combo.jplace","clstr"))
-
-# seq_num=0
-# mimi_num=0
-# for name in name_cate_dic:
-    # num=name_size_dic[name]
-    # seq_num+=num
-    # if name_cate_dic[name]=={"MIMI"}:mimi_num+=num
-
-# print(mimi_num,seq_num,mimi_num/seq_num)
