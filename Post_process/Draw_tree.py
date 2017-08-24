@@ -1,11 +1,13 @@
 from ete3 import Tree,NodeStyle,TreeFace,faces,TreeStyle,TreeStyle,AttrFace,ClusterTree,ProfileFace,RectFace,CircleFace,TextFace
 import math
-import sys
-import Make_OTU_table
+# import sys
+# import Make_OTU_table
 
-tree = Tree("/lustre1/aptmp/yanzeli/Megaviridae/Outputs_170310/Tree/test.tre")
-rep_psdic_dic = Make_OTU_table.Get_dic("/lustre1/aptmp/yanzeli/Megaviridae/Outputs_170310/9_CDHIT/A0_90.faa.clstr")
-output_fig_path="/user1/scl1/yanzeli/Megaviridae/Figures/Tree_1000_170511.png"
+tree = Tree("/aptmp/yanzeli/Paper_pipeline/Outputs_170812/8_POSTPROCESS/90.sub.combo.faa.aln.rearranged.tre")
+output_fig_path="/user1/scl1/yanzeli/Megaviridae/Figures/Tree_1000_170824.png"
+
+
+
 #########################################
 line_width=6
 stick_width=15   #35
@@ -133,7 +135,7 @@ for node in Gen_from_left(MIMI_query_reasonable_ancestor):
         
     else: 
         node.set_style(ns_com)
-        size=sum(rep_psdic_dic[node.name].values())
+        size=int(node.name.split("U")[1])
         if size==1:
             node.detach()
             continue
@@ -170,4 +172,4 @@ else:
     
 #################################################################
 
-# MIMI_query_reasonable_ancestor.render(output_fig_path,w=6400,units="px",tree_style=ts_sub_c)  
+MIMI_query_reasonable_ancestor.render(output_fig_path,w=6400,units="px",tree_style=ts_sub_c)  
