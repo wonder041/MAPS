@@ -22,6 +22,8 @@ def Calc_table(clstr_path):
                 barcode_size_series[barcode]+=size
             except KeyError:
                 barcode_size_series[barcode]=size
+        else:
+            series_arr+=[barcode_size_series]
      
     OTU_barcode_table=pd.DataFrame(series_arr).fillna(0).astype("int")
     OTU_barcode_table.to_csv(clstr_path+".csv")

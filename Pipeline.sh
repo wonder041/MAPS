@@ -154,7 +154,7 @@ Set_default_check_executable CUTADAPT_PATH /user1/scl1/yanzeli/.local/bin/cutada
 
 #build software path from module
 source /usr/share/modules/init/bash
-module load "trimmomatic/0.35 pplacer/1.1.alpha18 mafft/7.310 flash/1.2.11 python/3.4.2 R/3.3.1 cd-hit/4.6.8 blast+/2.5.0 hmmer/3.1b2 diamond/0.9.9" > /dev/null
+module load "trimmomatic/0.35 pplacer/1.1.alpha19 mafft/7.310 flash/1.2.11 python/3.4.2 R/3.3.1 cd-hit/4.6.8 blast+/2.5.0 hmmer/3.1b2 diamond/0.9.9" > /dev/null
 
 TRIMMOMATIC_PATH=${TRIMMOMATIC_PATH:-"/usr/bin/java -jar /usr/appli/freeware/trimmomatic/0.35/trimmomatic-0.35.jar"}
 Set_default_check_executable PPLACER_PATH /usr/appli/freeware/pplacer/1.1.alpha19/pplacer
@@ -485,11 +485,13 @@ BARCODE_ARR=$(ls ${INPUT_DIR}*.faa|rev |cut -d/ -f1|rev|cut -d. -f1)
     ${REF_DESIGN_PROT_ALN} > ${OUTPUT_DIR}$BARCODE.aln \
     && ${PYTHON_PATH} ${SCR_TRIM_COMMON_REGION} ${REF_DESIGN_PRIMER_NUCL_ALN} ${REF_DESIGN_PROT_ALN} \
     ${OUTPUT_DIR}$BARCODE.aln ${INPUT_DIR}$BARCODE.fna ${OUTPUT_DIR}${BARCODE}_Trimed.faa ${OUTPUT_DIR}${BARCODE}_Trimed.fna \
+    
     && ${MAFFT_PATH} --quiet --thread 4 --6merpair --addfragments ${OUTPUT_DIR}${BARCODE}_Trimed.faa \
     ${REF_PPLACER_ALN} > ${OUTPUT_DIR}${BARCODE}_Trimed.faa.combo.fasta \
     && ${PPLACER_PATH} -j 4 --verbosity 0 -o ${OUTPUT_DIR}${BARCODE}_Trimed.faa.combo.jplace \
     -t ${REF_PPLACER_RES} -s ${REF_PPLACER_INFO} ${OUTPUT_DIR}${BARCODE}_Trimed.faa.combo.fasta > /dev/null \
     && ${PYTHON_PATH} ${SCR_PPLACER_DECODE} ${OUTPUT_DIR}${BARCODE}_Trimed.faa.combo.jplace > ${OUTPUT_DIR}${BARCODE}_Trimed.faa.tit \
+    
     && ${MAKEBLASTDB_PATH} -dbtype prot -in ${OUTPUT_DIR}${BARCODE}_Trimed.faa -parse_seqids -hash_index > ${OUTPUT_DIR}${BARCODE}_Trimed.faa.log \
     && ${MAKEBLASTDB_PATH} -dbtype nucl -in ${OUTPUT_DIR}${BARCODE}_Trimed.fna -parse_seqids -hash_index > ${OUTPUT_DIR}${BARCODE}_Trimed.fna.log \
     && ${BLASTDBCMD_PATH} -db ${OUTPUT_DIR}${BARCODE}_Trimed.faa -entry_batch ${OUTPUT_DIR}${BARCODE}_Trimed.faa.tit -out ${OUTPUT_DIR}${BARCODE}_Pplacer.faa \

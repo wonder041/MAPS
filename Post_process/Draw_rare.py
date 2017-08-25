@@ -102,7 +102,7 @@ def Darw_various_PP():
     
 def Darw_various_samples():
     clstr_path="/aptmp/yanzeli/Megaviridae/Outputs_170821/8_POSTPROCESS/97.fna.clstr"
-    sample_description_dic={'S3':'Hot Sprint', 'S5':'Osaka Bay Nov-2', 'S6':'Osaka Bay Nov-3', 'S2':'Japan Sea', 'S0':'Osaka Bay Nov', 'S4':'Mangrove', 'S1':'Osaka Bay Aug'}
+    sample_description_dic={'S3':'Hot Spring', 'S5':'Osaka Bay Nov-2', 'S6':'Osaka Bay Nov-3', 'S2':'Japan Sea', 'S0':'Osaka Bay Nov', 'S4':'Mangrove', 'S1':'Osaka Bay Aug'}
     
     if os.path.exists(clstr_path+".csv"):
         OTU_barcode_table=pd.read_csv(clstr_path+".csv")
@@ -134,8 +134,8 @@ def Darw_various_samples():
             plt.annotate(xy=[sample_size_arr[0]/1000000-2.5,OTU_size_arr[0]-400],s=sample_description_dic[sample])
             plt.annotate(xy=[sample_size_arr[0]/1000000-2.5,OTU_size_arr[0]-650],s="reads:"+format(sample_size_arr[0], ',d')+" OTUs:"+format(int(OTU_size_arr[0]), ',d'),fontsize=6)
         elif sample=="S3":
-            plt.annotate(xy=[sample_size_arr[0]/1000000+0.2,OTU_size_arr[0]-100],s=sample_description_dic[sample])
-            plt.annotate(xy=[sample_size_arr[0]/1000000+0.2,OTU_size_arr[0]-350],s="reads:"+format(sample_size_arr[0], ',d')+" OTUs:"+format(int(OTU_size_arr[0]), ',d'),fontsize=6)
+            plt.annotate(xy=[sample_size_arr[0]/1000000+0.2,OTU_size_arr[0]-150],s=sample_description_dic[sample])
+            plt.annotate(xy=[sample_size_arr[0]/1000000+0.2,OTU_size_arr[0]-400],s="reads:"+format(sample_size_arr[0], ',d')+" OTUs:"+format(int(OTU_size_arr[0]), ',d'),fontsize=6)
         else:
             plt.annotate(xy=[sample_size_arr[0]/1000000+0.2,OTU_size_arr[0]],s=sample_description_dic[sample])
             plt.annotate(xy=[sample_size_arr[0]/1000000+0.2,OTU_size_arr[0]-250],s="reads:"+format(sample_size_arr[0], ',d')+" OTUs:"+format(int(OTU_size_arr[0]), ',d'),fontsize=6)
@@ -150,7 +150,8 @@ def Darw_various_samples():
     
 if __name__ == "__main__":
     # Darw_various_identity()
-    Darw_various_PP()
+    # Darw_various_PP()
+    Darw_various_samples()
     
     
 
