@@ -23,7 +23,7 @@ echo "MegaPipeline V${VERSION}"
 echo "Usage under editing"
 }
 
-#read argvments
+#read arguments
 while [ "$1" != "" ]; do
     case $1 in
         -i | -in )              shift
@@ -53,7 +53,7 @@ while [ "$1" != "" ]; do
         -version | --version )  echo "${VERSION}"
                                 exit
                                 ;;
-        * )                     echo "!!Wrong argvment!!"
+        * )                     echo "!!Wrong argument!!"
                                 usage
                                 exit 1
     esac
