@@ -42,7 +42,7 @@ PR_min = aln_len
 PL_max = 0
 
 for seqr in SeqIO.parse(input_faa_with_ref_path, "fasta"):
-    if not seqr.id.startswith("MIMI"):
+    if not seqr.id.startswith("MEGA"):
         break
     pos_in_aln_arr = list(Gen_pos_in_aln(str(seqr.seq)))
 
