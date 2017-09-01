@@ -15,4 +15,5 @@ def Detect_format(path):
         return "stockholm"
 
 seqr_gen=SeqIO.parse(input_path,Detect_format(input_path))
-SeqIO.write(seqr_gen,output_path,Detect_format(output_path))
+seqr_sorted_arr=sorted(seqr_gen,key=getattr("id"))
+SeqIO.write(seqr_sorted_arr,output_path,Detect_format(output_path))

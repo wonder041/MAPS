@@ -483,8 +483,8 @@ BARCODE_ARR=$(ls ${INPUT_DIR}*.faa|rev |cut -d/ -f1|rev|cut -d. -f1)
 (for BARCODE in $BARCODE_ARR;do
     echo "${MAFFT_PATH} --quiet --thread 4 --6merpair --addfragments ${INPUT_DIR}$BARCODE.faa \
     ${REF_DESIGN_PROT_ALN} > ${OUTPUT_DIR}$BARCODE.aln \
-    && ${PYTHON_PATH} ${SCR_TRIM_COMMON_REGION} ${REF_DESIGN_PRIMER_NUCL_ALN} ${REF_DESIGN_PROT_ALN} \
-    ${OUTPUT_DIR}$BARCODE.aln ${INPUT_DIR}$BARCODE.fna ${OUTPUT_DIR}${BARCODE}_Trimed.faa ${OUTPUT_DIR}${BARCODE}_Trimed.fna \
+    && ${PYTHON_PATH} ${SCR_TRIM_COMMON_REGION} ${REF_DESIGN_PRIMER_NUCL_ALN} ${OUTPUT_DIR}$BARCODE.aln \
+    ${INPUT_DIR}$BARCODE.fna ${OUTPUT_DIR}${BARCODE}_Trimed.faa ${OUTPUT_DIR}${BARCODE}_Trimed.fna \
     
     && ${MAFFT_PATH} --quiet --thread 4 --6merpair --addfragments ${OUTPUT_DIR}${BARCODE}_Trimed.faa \
     ${REF_PPLACER_ALN} > ${OUTPUT_DIR}${BARCODE}_Trimed.faa.combo.fasta \
@@ -504,8 +504,8 @@ Footer
 
 # A5G40
 # CUTADAPT_G40
-# MERGE
-# DEDUPLICATION
+MERGE
+DEDUPLICATION
 FAA
 # BLASTP
 # ALIGNMENT

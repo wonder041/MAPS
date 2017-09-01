@@ -52,9 +52,13 @@ def translate(seqr):
             
         yield new_seqr
 
+#sort seqr
+seqr_sorted_arr=sorted(SeqIO.parse(input_path, "fasta"), key=lambda seqr:seqr.id)
+        
+        
 #rename fna seqr
 rename_seqr_arr = [rename(number, seqr) for number,
-                   seqr in enumerate(SeqIO.parse(input_path, "fasta"))]
+                   seqr in enumerate(seqr_sorted_arr)]
 
 #write renamed fna to file                   
 SeqIO.write(rename_seqr_arr, fna_output_path, "fasta")

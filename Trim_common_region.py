@@ -5,55 +5,60 @@ import math
 import io
 import sys
 
-ref_nucl_path, ref_prot_path, input_faa_with_ref_path, input_fna_path, output_faa_path, output_fna_path = sys.argv[1:]
+ref_nucl_path, input_faa_with_ref_path, input_fna_path, output_faa_path, output_fna_path = sys.argv[1:]
 
+#calculate alignment length and set initial value of left and right boundary in nucleotide file
 aln_nuc_len = len(next(SeqIO.parse(ref_nucl_path, "fasta")))
-PR_nuc_min = aln_nuc_len
-PL_nuc_max = 0
+right_boundary_nuc = aln_nuc_len
+left_boundary_nuc = 0
 
+#update boundary from primer positions
 for seqr in SeqIO.parse(ref_nucl_path, "fasta"):
     if "_L" in seqr.id:
-        PL_nuc = len(str(seqr.seq).rstrip("-"))
-        if PL_nuc > PL_nuc_max:
-            PL_nuc_max = PL_nuc
+        left_pos_nuc = len(str(seqr.seq).rstrip("-"))
+        if left_pos_nuc > left_boundary_nuc:
+            left_boundary_nuc = left_pos_nuc
     if "_R" in seqr.id:
-        PR_nuc = aln_nuc_len - len(str(seqr.seq).lstrip("-"))
-        if PR_nuc < PR_nuc_min:
-            PR_nuc_min = PR_nuc
+        right_pos_nuc = aln_nuc_len - len(str(seqr.seq).lstrip("-"))
+        if right_pos_nuc < right_boundary_nuc:
+            right_boundary_nuc = right_pos_nuc
 
-tit_PL_PR_tup_dic = {}
+#calculate left and right boundary in non-alignment position for all reference
+tit_boundary_dic = {}
 for seqr in SeqIO.parse(ref_nucl_path, "fasta"):
-    if ("MIMI" in seqr.id) or ("gene" in seqr.id):
-        PL = math.ceil(len(seqr.seq[:PL_nuc_max].ungap("-")) / 3)
-        PR = len(seqr.seq[:PR_nuc_min].ungap("-")) // 3  # inner+1
-        tit_PL_PR_tup_dic[seqr.id] = (PL, PR)
+    if seqr.id.startswith("MEGA"):
+        left_char_pos = math.ceil(len(seqr.seq[:left_boundary_nuc].ungap("-")) / 3)
+        right_char_pos = len(seqr.seq[:right_boundary_nuc].ungap("-")) // 3  # inner+1
+        tit_boundary_dic[seqr.id] = (left_char_pos, right_char_pos)
 
 
-def Gen_pos_in_aln(seq):
+def Gen_char_pos_in_aln(seq):
     for i in range(len(seq)):
         if seq[i] == "-":
             continue
         yield i
 
         
-        
+#calculate alignment length and set initial value of left and right boundary        
 aln_len = len(next(SeqIO.parse(input_faa_with_ref_path, "fasta")).seq)
-PR_min = aln_len
-PL_max = 0
+right_boundary = aln_len
+left_boundary = 0
 
+
+#left and right boundary in non-alignment position back to alignment position
 for seqr in SeqIO.parse(input_faa_with_ref_path, "fasta"):
-    if ("MIMI" in seqr.id) or ("gene" in seqr.id):
-        pos_in_aln_arr = list(Gen_pos_in_aln(str(seqr.seq)))
+    if seqr.id.startswith("MEGA"):
+        pos_in_aln_arr = list(Gen_char_pos_in_aln(str(seqr.seq)))
     
-        PL = pos_in_aln_arr[tit_PL_PR_tup_dic[seqr.id][0]]
-        PR = pos_in_aln_arr[tit_PL_PR_tup_dic[seqr.id][1]]
-        if PL > PL_max:
-            PL_max = PL
-        if PR < PR_min:
-            PR_min = PR
+        left_pos = pos_in_aln_arr[tit_PL_PR_tup_dic[seqr.id][0]]
+        right_pos = pos_in_aln_arr[tit_PL_PR_tup_dic[seqr.id][1]]
+        if left_pos > left_boundary:
+            left_boundary = left_pos
+        if right_pos < right_boundary:
+            right_boundary = right_pos
+    else:
+        break
 
-# print(PL_max,PR_min)
-# sys.exit(0)
 ###############################################################
 
 
@@ -67,13 +72,13 @@ def Ge_trim_fna(id):
 
 
 def Trim(seqr):
-    skip_l = len(seqr.seq[:PL_max].ungap("-"))
-    skip_r = len(seqr.seq[:PR_min].ungap("-"))
-    seqr.seq = seqr.seq[PL_max:PR_min].ungap("-")
+    left_char_pos = len(seqr.seq[:left_boundary].ungap("-"))
+    right_char_pos = len(seqr.seq[:right_boundary].ungap("-"))
+    seqr.seq = seqr.seq[left_boundary:right_boundary].ungap("-")
     if not len(seqr):
         return None
     seqr.description = seqr.name = seqr.id = seqr.id + \
-        'L' + str(skip_l) + 'R' + str(skip_r)
+        'L' + str(left_char_pos) + 'R' + str(right_char_pos)
     return(seqr)
 
 
@@ -117,8 +122,7 @@ for (output_str, trim_fna_dict_seg) in str_gen:
     output_file.write(output_str)
     trim_fna_dic.update(trim_fna_dict_seg)
 
-# print(len(trim_fna_dic))
-# 950867
+
 ##########################################################################
 
 

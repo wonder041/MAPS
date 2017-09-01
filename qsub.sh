@@ -19,4 +19,4 @@
 #Please change path which in PBS comment part into your path in ABSOLUTE path.
 #you can relative path in main text below
 
-sh ~/aptmp/Paper_pipeline/Scripts/Pipeline.sh -in /aptmp/yanzeli/Megaviridae/Source_FL/ -out /aptmp/yanzeli/Megaviridae/Outputs_170821/ -t 2
+sh ~/aptmp/Paper_pipeline/Scripts/Pipeline.sh -in /aptmp/yanzeli/Paper_pipeline/Sources/ -out /aptmp/yanzeli/Paper_pipeline/Outputs_170901/ -t 28
