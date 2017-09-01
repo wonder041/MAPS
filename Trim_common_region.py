@@ -42,16 +42,15 @@ PR_min = aln_len
 PL_max = 0
 
 for seqr in SeqIO.parse(input_faa_with_ref_path, "fasta"):
-    if not seqr.id.startswith("MEGA"):
-        break
-    pos_in_aln_arr = list(Gen_pos_in_aln(str(seqr.seq)))
-
-    PL = pos_in_aln_arr[tit_PL_PR_tup_dic[seqr.id][0]]
-    PR = pos_in_aln_arr[tit_PL_PR_tup_dic[seqr.id][1]]
-    if PL > PL_max:
-        PL_max = PL
-    if PR < PR_min:
-        PR_min = PR
+    if ("MIMI" in seqr.id) or ("gene" in seqr.id):
+        pos_in_aln_arr = list(Gen_pos_in_aln(str(seqr.seq)))
+    
+        PL = pos_in_aln_arr[tit_PL_PR_tup_dic[seqr.id][0]]
+        PR = pos_in_aln_arr[tit_PL_PR_tup_dic[seqr.id][1]]
+        if PL > PL_max:
+            PL_max = PL
+        if PR < PR_min:
+            PR_min = PR
 
 # print(PL_max,PR_min)
 # sys.exit(0)
