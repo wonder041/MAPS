@@ -506,9 +506,9 @@ Footer
 # CUTADAPT_G40
 # MERGE
 # DEDUPLICATION
-# FAA
-BLASTP
-ALIGNMENT
+FAA
+# BLASTP
+# ALIGNMENT
 
 
 Logger "-Finish Pepeline"
