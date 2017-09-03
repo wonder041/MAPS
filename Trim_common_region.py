@@ -50,8 +50,8 @@ for seqr in SeqIO.parse(input_faa_with_ref_path, "fasta"):
     if seqr.id.startswith("MEGA"):
         pos_in_aln_arr = list(Gen_char_pos_in_aln(str(seqr.seq)))
     
-        left_pos = pos_in_aln_arr[tit_PL_PR_tup_dic[seqr.id][0]]
-        right_pos = pos_in_aln_arr[tit_PL_PR_tup_dic[seqr.id][1]]
+        left_pos = pos_in_aln_arr[tit_boundary_dic[seqr.id][0]]
+        right_pos = pos_in_aln_arr[tit_boundary_dic[seqr.id][1]]
         if left_pos > left_boundary:
             left_boundary = left_pos
         if right_pos < right_boundary:
@@ -59,19 +59,12 @@ for seqr in SeqIO.parse(input_faa_with_ref_path, "fasta"):
     else:
         break
 
+        
 ###############################################################
 
-
-def Ge_trim_fna(id):
-    skip_l = int(id.split("L")[-1].split("R")[0])
-    skip_r = int(id.split("R")[-1])
-    frame_shift = int(id.split("F")[-1].split("L")[0].split("C")[0])
-    trim_fna = (id.split("F")[0], (frame_shift +
-                                   skip_l * 3, frame_shift + skip_r * 3))
-    return trim_fna
-
-
 def Trim(seqr):
+    if seqr.id.startswith("MEGA"):
+        return None
     left_char_pos = len(seqr.seq[:left_boundary].ungap("-"))
     right_char_pos = len(seqr.seq[:right_boundary].ungap("-"))
     seqr.seq = seqr.seq[left_boundary:right_boundary].ungap("-")
@@ -82,7 +75,7 @@ def Trim(seqr):
     return(seqr)
 
 
-def Split(input_faa_with_ref_path, size=10000000):
+def Split_input_file(input_faa_with_ref_path, size=10000000):
     input_file_b = open(input_faa_with_ref_path, "rb")
     file_size = os.path.getsize(input_faa_with_ref_path)
     pos_p = 0
@@ -99,28 +92,38 @@ def Split(input_faa_with_ref_path, size=10000000):
 
 
 def Gen_str(pos_tup):
+    
+    #load file segment into handle
     pos_p, pos = pos_tup
     input_file = open(input_faa_with_ref_path, "r")
     input_file.seek(pos_p)
     handle = io.StringIO(input_file.read(pos - pos_p))
+    
+    #set output to output_handle
     output_handle = io.StringIO()
-    trimed_seqr_gen = (Trim(seqr) for seqr in SeqIO.parse(
-        handle, "fasta") if "C" not in seqr.id if not seqr.id.startswith("MIMI") if "gene" not in seqr.id)
+    
+    #trim faa seqr and fliter empty result
+    trimed_seqr_gen = (Trim(seqr) for seqr in SeqIO.parse(handle, "fasta"))        
     trimed_seqr_arr =[ seqr for seqr in trimed_seqr_gen if seqr]
-    trim_fna_dict_seg = [Ge_trim_fna(seqr.id) for seqr in trimed_seqr_arr]
+    
+    #generate dict for trim fna
+    # id_pos_tup_arr = [Get_id_pos_tup(seqr.id) for seqr in trimed_seqr_arr]
+    
     SeqIO.write(trimed_seqr_arr, output_handle, "fasta")
-    return (output_handle.getvalue(), trim_fna_dict_seg)
+    return output_handle.getvalue()
 
 
-fileseg_gen = Split(input_faa_with_ref_path)
+file_segment_gen = Split_input_file(input_faa_with_ref_path)
 pool = multiprocessing.Pool(4)
-str_gen = pool.imap_unordered(Gen_str, fileseg_gen)
+str_gen = pool.imap_unordered(Gen_str, file_segment_gen)
 
 trim_fna_dic = {}
 output_file = open(output_faa_path, "w")
-for (output_str, trim_fna_dict_seg) in str_gen:
+for output_str in str_gen:
     output_file.write(output_str)
-    trim_fna_dic.update(trim_fna_dict_seg)
+    for line in output_str.split("\n"):
+        if line.startswith(">"):
+            trim_fna_dic[line.split("F")[0].strip(">")]=line.split("F")[1]
 
 
 ##########################################################################
@@ -128,10 +131,14 @@ for (output_str, trim_fna_dict_seg) in str_gen:
 
 def Trim_fna(seqr):
     try:
-        pos_start, pos_end = trim_fna_dic[seqr.id]
-        seqr.seq = seqr.seq[pos_start:pos_end]
-        seqr.description = seqr.name = seqr.id = seqr.id + \
-            'L' + str(pos_start) + 'R' + str(pos_end)
+        id_ext = trim_fna_dic[seqr.id]
+
+        left_pos = int(id_ext.split("L")[-1].split("R")[0])
+        right_pos = int(id_ext.split("R")[-1])
+        frame_shift = int(id_ext.split("F")[-1].split("L")[0].split("C")[0])
+
+        seqr.seq = seqr.seq[frame_shift + left_pos * 3: frame_shift + right_pos * 3]
+        seqr.description = seqr.name = seqr.id = seqr.id +"F"+ id_ext
         return(seqr)
     except KeyError:
         return

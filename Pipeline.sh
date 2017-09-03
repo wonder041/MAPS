@@ -485,18 +485,15 @@ BARCODE_ARR=$(ls ${INPUT_DIR}*.faa|rev |cut -d/ -f1|rev|cut -d. -f1)
     ${REF_DESIGN_PROT_ALN} > ${OUTPUT_DIR}$BARCODE.aln \
     && ${PYTHON_PATH} ${SCR_TRIM_COMMON_REGION} ${REF_DESIGN_PRIMER_NUCL_ALN} ${OUTPUT_DIR}$BARCODE.aln \
     ${INPUT_DIR}$BARCODE.fna ${OUTPUT_DIR}${BARCODE}_Trimed.faa ${OUTPUT_DIR}${BARCODE}_Trimed.fna \
-    
     && ${MAFFT_PATH} --quiet --thread 4 --6merpair --addfragments ${OUTPUT_DIR}${BARCODE}_Trimed.faa \
     ${REF_PPLACER_ALN} > ${OUTPUT_DIR}${BARCODE}_Trimed.faa.combo.fasta \
     && ${PPLACER_PATH} -j 4 --verbosity 0 -o ${OUTPUT_DIR}${BARCODE}_Trimed.faa.combo.jplace \
     -t ${REF_PPLACER_RES} -s ${REF_PPLACER_INFO} ${OUTPUT_DIR}${BARCODE}_Trimed.faa.combo.fasta > /dev/null \
-    && ${PYTHON_PATH} ${SCR_PPLACER_DECODE} ${OUTPUT_DIR}${BARCODE}_Trimed.faa.combo.jplace > ${OUTPUT_DIR}${BARCODE}_Trimed.faa.tit \
-    
+    && ${PYTHON_PATH} ${SCR_PPLACER_DECODE} ${OUTPUT_DIR}${BARCODE}_Trimed.faa.combo.jplace > ${OUTPUT_DIR}${BARCODE}_Trimed.tit \
     && ${MAKEBLASTDB_PATH} -dbtype prot -in ${OUTPUT_DIR}${BARCODE}_Trimed.faa -parse_seqids -hash_index > ${OUTPUT_DIR}${BARCODE}_Trimed.faa.log \
     && ${MAKEBLASTDB_PATH} -dbtype nucl -in ${OUTPUT_DIR}${BARCODE}_Trimed.fna -parse_seqids -hash_index > ${OUTPUT_DIR}${BARCODE}_Trimed.fna.log \
-    && ${BLASTDBCMD_PATH} -db ${OUTPUT_DIR}${BARCODE}_Trimed.faa -entry_batch ${OUTPUT_DIR}${BARCODE}_Trimed.faa.tit -out ${OUTPUT_DIR}${BARCODE}_Pplacer.faa \
-    && ${PYTHON_PATH} ${SCR_PPLACER_FNA_ID} ${OUTPUT_DIR}${BARCODE}_Trimed.faa.tit ${OUTPUT_DIR}${BARCODE}_Trimed.fna ${OUTPUT_DIR}${BARCODE}_Trimed.fna.tit \
-    && ${BLASTDBCMD_PATH} -db ${OUTPUT_DIR}${BARCODE}_Trimed.fna -entry_batch ${OUTPUT_DIR}${BARCODE}_Trimed.fna.tit -out ${OUTPUT_DIR}${BARCODE}_Pplacer.fna"
+    && ${BLASTDBCMD_PATH} -db ${OUTPUT_DIR}${BARCODE}_Trimed.faa -entry_batch ${OUTPUT_DIR}${BARCODE}_Trimed.tit -out ${OUTPUT_DIR}${BARCODE}_Pplacer.faa \
+    && ${BLASTDBCMD_PATH} -db ${OUTPUT_DIR}${BARCODE}_Trimed.fna -entry_batch ${OUTPUT_DIR}${BARCODE}_Trimed.tit -out ${OUTPUT_DIR}${BARCODE}_Pplacer.fna"
 done)|parallel -j `expr ${THREADS} / 4`
 
 Footer
@@ -504,11 +501,11 @@ Footer
 
 # A5G40
 # CUTADAPT_G40
-MERGE
-DEDUPLICATION
-FAA
+# MERGE
+# DEDUPLICATION
+# FAA
 # BLASTP
-# ALIGNMENT
+ALIGNMENT
 
 
-Logger "-Finish Pepeline"
+Logger "-Finish Pipeline"
