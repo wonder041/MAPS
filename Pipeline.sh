@@ -76,7 +76,7 @@ eval "if [ ! -f "'$'"$1 ]; then echo !!Envrionment ERROR, $1 = "'$'"$1 not found
 }
 
 #set main directory
-MAIN_DIR=${MAIN_DIR:-"/user1/scl1/yanzeli/aptmp/Paper_pipeline/"}
+MAIN_DIR=${MAIN_DIR:-"/aptmp/yanzeli/Paper_pipeline/"}
 
 #build sub directorys
 SOURCES_DIR=${SOURCES_DIR:-"${MAIN_DIR}Sources/"}
@@ -150,18 +150,18 @@ eval "if [ ! -x "'$'"$1 ]; then echo !!Software path ERROR, $1 = "'$'"$1 not fou
 }
 
 #build software path from user directory
-Set_default_check_executable CUTADAPT_PATH /user1/scl1/yanzeli/.local/bin/cutadapt
+Set_default_check_executable CUTADAPT_PATH /aptmp/yanzeli/miniconda3/envs/cutadapt/bin/cutadapt
 
 #build software path from module
 source /usr/share/modules/init/bash
-module load "trimmomatic/0.35 pplacer/1.1.alpha19 mafft/7.310 flash/1.2.11 python/3.4.2 R/3.3.1 cd-hit/4.6.8 blast+/2.5.0 hmmer/3.1b2 diamond/0.9.9" > /dev/null
+module load "trimmomatic/0.35 pplacer/1.1.alpha19 mafft/7.310 flash/1.2.11 Python/3.6 R/3.3.1 cd-hit/4.6.8 blast+/2.5.0 hmmer/3.1b2 diamond/0.9.9" > /dev/null
 
 TRIMMOMATIC_PATH=${TRIMMOMATIC_PATH:-"/usr/bin/java -jar /usr/appli/freeware/trimmomatic/0.35/trimmomatic-0.35.jar"}
 Set_default_check_executable PPLACER_PATH /usr/appli/freeware/pplacer/1.1.alpha19/pplacer
 Set_default_check_executable MAFFT_PATH /usr/appli/freeware/mafft/7.310/bin/mafft
 Set_default_check_executable FLASH_PATH /usr/appli/freeware/flash/1.2.11/flash
 
-Set_default_check_executable PYTHON_PATH /bio/local/python/3.4.2/bin/python
+Set_default_check_executable PYTHON_PATH /usr/appli/freeware/Python/3.6.0/bin/python
 Set_default_check_executable R_PATH /usr/appli/freeware/R/3.3.1/bin/R
 
 Set_default_check_executable CDHIT_PATH /usr/appli/freeware/cd-hit/4.6.8/cd-hit
@@ -373,8 +373,8 @@ BARCODE_ARR=$(ls ${INPUT_DIR}*.fna|rev |cut -d/ -f1|rev|cut -d. -f1)
     LOG_PATH=${OUTPUT_DIR}${BARCODE}.log
     
     echo "${CDHIT_EST_PATH} -i ${INPUT_FILE} -o ${OUTPUT_FILE} \
-	-G 0 -aS 1 -c 1 -n 11 -d 0 -M 8000 -T 6 > ${LOG_PATH}"
-done)|parallel -j `expr ${THREADS} / 6`
+	-G 0 -aS 1 -c 1 -n 11 -d 0 -M 8000 -T 8 > ${LOG_PATH}"
+done)|parallel -j `expr ${THREADS} / 8`
 
 Footer 
 
@@ -447,8 +447,8 @@ BARCODE_ARR=$(ls ${INPUT_DIR}*.faa|rev |cut -d/ -f1|rev|cut -d. -f1)
         -out ${OUTPUT_DIR}${BARCODE}.res -evalue 1e-5 -outfmt 6 -max_target_seqs 1 "
     fi
 	echo "&& cat ${OUTPUT_DIR}$BARCODE.res|grep MEGA|cut -f1|sort -u > ${OUTPUT_DIR}$BARCODE.tit \
-	&& test -s ${OUTPUT_DIR}$BARCODE.tit \
-        && $BLASTDBCMD_PATH -db ${INPUT_DIR}$BARCODE.faa \
+    && test -s ${OUTPUT_DIR}$BARCODE.tit \
+    && $BLASTDBCMD_PATH -db ${INPUT_DIR}$BARCODE.faa \
     -entry_batch ${OUTPUT_DIR}$BARCODE.tit -out ${OUTPUT_DIR}$BARCODE.faa \
 	&& cat ${OUTPUT_DIR}$BARCODE.tit |cut -dF -f1|sort -u > ${OUTPUT_DIR}${BARCODE}_fna.tit \
 	&& $BLASTDBCMD_PATH -db ${INPUT_DIR}$BARCODE.fna \
@@ -475,26 +475,53 @@ Footer
   # -> blast makes a file which has title and the sequence 
 }
 
-ALIGNMENT(){
+ALIGNMENT1(){
 Header
 
 BARCODE_ARR=$(ls ${INPUT_DIR}*.faa|rev |cut -d/ -f1|rev|cut -d. -f1)
 
 (for BARCODE in $BARCODE_ARR;do
-    echo "${MAFFT_PATH} --quiet --thread 4 --6merpair --addfragments ${INPUT_DIR}$BARCODE.faa \
+    echo "${MAFFT_PATH} --quiet --thread 6 --6merpair --addfragments ${INPUT_DIR}$BARCODE.faa \
     ${REF_DESIGN_PROT_ALN} > ${OUTPUT_DIR}$BARCODE.aln \
     && ${PYTHON_PATH} ${SCR_TRIM_COMMON_REGION} ${REF_DESIGN_PRIMER_NUCL_ALN} ${OUTPUT_DIR}$BARCODE.aln \
     ${INPUT_DIR}$BARCODE.fna ${OUTPUT_DIR}${BARCODE}_Trimed.faa ${OUTPUT_DIR}${BARCODE}_Trimed.fna \
-    && ${MAFFT_PATH} --quiet --thread 4 --6merpair --addfragments ${OUTPUT_DIR}${BARCODE}_Trimed.faa \
+    && ${MAFFT_PATH} --quiet --thread 6 --6merpair --addfragments ${OUTPUT_DIR}${BARCODE}_Trimed.faa \
     ${REF_PPLACER_ALN} > ${OUTPUT_DIR}${BARCODE}_Trimed.faa.combo.fasta \
-    && ${PPLACER_PATH} -j 4 --verbosity 0 -o ${OUTPUT_DIR}${BARCODE}_Trimed.faa.combo.jplace \
+    && ${PPLACER_PATH} -j 6 --verbosity 0 -o ${OUTPUT_DIR}${BARCODE}_Trimed.faa.combo.jplace \
     -t ${REF_PPLACER_RES} -s ${REF_PPLACER_INFO} ${OUTPUT_DIR}${BARCODE}_Trimed.faa.combo.fasta > /dev/null \
     && ${PYTHON_PATH} ${SCR_PPLACER_DECODE} ${OUTPUT_DIR}${BARCODE}_Trimed.faa.combo.jplace > ${OUTPUT_DIR}${BARCODE}_Trimed.tit \
     && ${MAKEBLASTDB_PATH} -dbtype prot -in ${OUTPUT_DIR}${BARCODE}_Trimed.faa -parse_seqids -hash_index > ${OUTPUT_DIR}${BARCODE}_Trimed.faa.log \
     && ${MAKEBLASTDB_PATH} -dbtype nucl -in ${OUTPUT_DIR}${BARCODE}_Trimed.fna -parse_seqids -hash_index > ${OUTPUT_DIR}${BARCODE}_Trimed.fna.log \
     && ${BLASTDBCMD_PATH} -db ${OUTPUT_DIR}${BARCODE}_Trimed.faa -entry_batch ${OUTPUT_DIR}${BARCODE}_Trimed.tit -out ${OUTPUT_DIR}${BARCODE}_Pplacer.faa \
     && ${BLASTDBCMD_PATH} -db ${OUTPUT_DIR}${BARCODE}_Trimed.fna -entry_batch ${OUTPUT_DIR}${BARCODE}_Trimed.tit -out ${OUTPUT_DIR}${BARCODE}_Pplacer.fna"
-done)|parallel -j `expr ${THREADS} / 4`
+done)|parallel -j `expr ${THREADS} / 6`
+
+Footer
+}
+
+ALIGNMENT(){
+Header
+
+BARCODE_ARR=$(ls ${INPUT_DIR}*.faa|rev |cut -d/ -f1|rev|cut -d. -f1)
+
+(for BARCODE in $BARCODE_ARR;do
+    echo "${MAFFT_PATH} --quiet --thread 8 --6merpair --addfragments ${INPUT_DIR}$BARCODE.faa \
+    ${REF_PPLACER_ALN} > ${OUTPUT_DIR}${BARCODE}.combo.fasta \
+    && ${PPLACER_PATH} -j 8 --verbosity 0 -o ${OUTPUT_DIR}${BARCODE}.combo.jplace \
+    -t ${REF_PPLACER_RES} -s ${REF_PPLACER_INFO} ${OUTPUT_DIR}${BARCODE}.combo.fasta > /dev/null \
+    && ${PYTHON_PATH} ${SCR_PPLACER_DECODE} ${OUTPUT_DIR}${BARCODE}.combo.jplace > ${OUTPUT_DIR}${BARCODE}_Pplacer.tit \
+    && cut -dF -f1 ${OUTPUT_DIR}${BARCODE}_Pplacer.tit > ${OUTPUT_DIR}${BARCODE}_Pplacer_fna.tit \
+    && ${MAKEBLASTDB_PATH} -dbtype prot -in ${INPUT_DIR}$BARCODE.faa -parse_seqids -hash_index > ${INPUT_DIR}$BARCODE.faa.log \
+    && ${MAKEBLASTDB_PATH} -dbtype nucl -in ${INPUT_DIR}$BARCODE.fna -parse_seqids -hash_index > ${INPUT_DIR}$BARCODE.fna.log \
+    && ${BLASTDBCMD_PATH} -db ${INPUT_DIR}$BARCODE.faa \
+    -entry_batch ${OUTPUT_DIR}${BARCODE}_Pplacer.tit -out ${OUTPUT_DIR}${BARCODE}_Pplacer.faa \
+    && ${BLASTDBCMD_PATH} -db ${INPUT_DIR}$BARCODE.fna \
+    -entry_batch ${OUTPUT_DIR}${BARCODE}_Pplacer_fna.tit -out ${OUTPUT_DIR}${BARCODE}_Pplacer.fna \
+    && ${MAFFT_PATH} --quiet --thread 8 --6merpair --addfragments ${OUTPUT_DIR}${BARCODE}_Pplacer.faa \
+    ${REF_DESIGN_PROT_ALN} > ${OUTPUT_DIR}$BARCODE.aln \
+    && ${PYTHON_PATH} ${SCR_TRIM_COMMON_REGION} ${REF_DESIGN_PRIMER_NUCL_ALN} ${OUTPUT_DIR}$BARCODE.aln \
+    ${OUTPUT_DIR}${BARCODE}_Pplacer.fna ${OUTPUT_DIR}${BARCODE}_Trimmed.faa ${OUTPUT_DIR}${BARCODE}_Trimmed.fna"
+done)|parallel -j `expr ${THREADS} / 8`
 
 Footer
 }

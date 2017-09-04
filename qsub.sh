@@ -9,10 +9,10 @@
 
 # commits below are for qsub
 #
-#PBS -q cdb
+#PBS -q sp
 #PBS -j oe
-#PBS -o /user1/scl1/yanzeli/qsub.out
-#PBS -l mem=400gb
+#PBS -o /lustre1/aptmp/ideas2/yanzeli/qsub.log
+#PBS -l mem=40gb
 #======================================================
 
 
@@ -20,5 +20,5 @@
 #you can relative path in main text below
 
 # sh ~/aptmp/Paper_pipeline/Scripts/Pipeline.sh -in /aptmp/yanzeli/Paper_pipeline/Sources/ -out /aptmp/yanzeli/Paper_pipeline/Outputs_170901/ -t 28
-sh ~/aptmp/Paper_pipeline/Scripts/Pipeline.sh -in /aptmp/yanzeli/Paper_pipeline/Test_Sources/ -out /aptmp/yanzeli/Paper_pipeline/Test_Outputs_0/ -t 28 &
-sh ~/aptmp/Paper_pipeline/Scripts/Pipeline.sh -in /aptmp/yanzeli/Paper_pipeline/Test_Sources/ -out /aptmp/yanzeli/Paper_pipeline/Test_Outputs_1/ -t 28
+# sh ~/aptmp/Paper_pipeline/Scripts/Pipeline.sh -in /aptmp/yanzeli/Paper_pipeline/Test_Sources/ -out /aptmp/yanzeli/Paper_pipeline/Test_Outputs_0/ -t 28 &
+sh /aptmp/yanzeli/Paper_pipeline/Scripts/Pipeline.sh -in /aptmp/yanzeli/Paper_pipeline/Test_Sources/ -out /lustre1/aptmp/ideas2/yanzeli/Megaviridae/Test_Outputs_1/ -t 100
