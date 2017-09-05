@@ -4,7 +4,7 @@ import math
 # import Make_OTU_table
 
 tree = Tree("/aptmp/yanzeli/Paper_pipeline/Outputs_170812/8_POSTPROCESS/90.sub.combo.faa.aln.rearranged.tre")
-output_fig_path="/user1/scl1/yanzeli/Megaviridae/Figures/Tree_1000_170824.png"
+output_fig_path="/user1/scl1/yanzeli/Megaviridae/Figures/Tree_1000_170904.png"
 
 
 
@@ -16,7 +16,7 @@ log_scale=300   #150
 color_scale=6   #4
 color_MIMI="Black"  #"#4A19FF"
 
-ns_MIMI = NodeStyle(size=0,hz_line_color=color_MIMI,vt_line_color=color_MIMI,hz_line_width=line_width,vt_line_width=line_width)
+ns_MIMI = NodeStyle(size=0,hz_line_color="Red",vt_line_color="Red",hz_line_width=line_width,vt_line_width=line_width)
 ns_com = NodeStyle(size=0,hz_line_width=line_width,vt_line_width=line_width)
 
 ts_sub_c=TreeStyle()

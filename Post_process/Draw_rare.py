@@ -151,7 +151,7 @@ def Darw_various_samples():
 if __name__ == "__main__":
     # Darw_various_identity()
     # Darw_various_PP()
-    Darw_various_samples()
+    # Darw_various_samples()
     
     
 
