@@ -34,7 +34,7 @@ mkdir -p ${OUTPUT_DIR}${BARCODE}/
 
 TRIM_MERGE(){
     mkdir -p ${OUTPUT_DIR}${BARCODE}/${QUAL_NOW}_${SIZE_NOW}/
-   ${TRIMMOMATIC_PATH} PE -threads 2 -phred33 \
+   ${TRIMMOMATIC_PATH} PE -threads 4 -phred33 \
    ${INPUT_PATH}/out.notCombined_1.fastq \
    ${INPUT_PATH}/out.notCombined_2.fastq \
    ${OUTPUT_DIR}${BARCODE}/${QUAL_NOW}_${SIZE_NOW}/Trim${READ_PATTERN[0]} \
@@ -44,7 +44,7 @@ TRIM_MERGE(){
    SLIDINGWINDOW:${SIZE_NOW}:${QUAL_NOW} \
    &> /dev/null
    ${FLASH_PATH} \
-    -t 2 \
+    -t 4 \
     -m 20 \
     -M 300 \
     -x ${MERGE_ERROR_RATE} \

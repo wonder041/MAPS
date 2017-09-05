@@ -227,10 +227,10 @@ BARCODE_ARR=$(ls ${INPUT_DIR}*${READ_PATTERN[0]}|rev |cut -d/ -f1|rev|cut -d_ -f
     R1_NOPAIR_OUTPUT_PATH=${OUTPUT_DIR}${BARCODE}_np${READ_PATTERN[0]}
     R2_NOPAIR_OUTPUT_PATH=${OUTPUT_DIR}${BARCODE}_np${READ_PATTERN[1]}    
     LOG_PATH=${OUTPUT_DIR}${BARCODE}.log    
-    echo "${TRIMMOMATIC_PATH} PE -threads 2 -phred33 -trimlog ${LOG_PATH} \
+    echo "${TRIMMOMATIC_PATH} PE -threads 4 -phred33 -trimlog ${LOG_PATH} \
     ${R1_INPUT_PATH} ${R2_INPUT_PATH} ${R1_OUTPUT_PATH} ${R1_NOPAIR_OUTPUT_PATH} \
     ${R2_OUTPUT_PATH} ${R2_NOPAIR_OUTPUT_PATH} AVGQUAL:5 MINLEN:40 &> /dev/null "
-done)|parallel -j `expr ${THREADS} / 2`
+done)|parallel -j `expr ${THREADS} / 4`
 
 Footer
 }
@@ -304,9 +304,9 @@ BARCODE_ARR=$(ls ${INPUT_DIR}*${READ_PATTERN[0]}|grep -v _np|rev |cut -d/ -f1|re
     
     mkdir -p ${MERGE_I_DIR}${BARCODE}
     LOG_PATH=${MERGE_I_DIR}${BARCODE}/log
-    echo "$FLASH_PATH -t 2 -m ${MERGE_OVERLAP_MIN} -M 300 -x ${MERGE_ERROR_RATE} \
+    echo "$FLASH_PATH -t 4 -m ${MERGE_OVERLAP_MIN} -M 300 -x ${MERGE_ERROR_RATE} \
     ${R1_INPUT_PATH} ${R2_INPUT_PATH} -d ${MERGE_I_DIR}${BARCODE}/ &> ${LOG_PATH}"
-done)|parallel -j `expr ${THREADS} / 2`
+done)|parallel -j `expr ${THREADS} / 4`
 
 #Explanation: flash
    #takes two input files and merges them.
@@ -327,12 +327,12 @@ BARCODE_ARR=$(ls -p ${MERGE_I_DIR}|rev |cut -d/ -f2|rev)
     
     mkdir -p ${MERGE_O_DIR}${BARCODE}
     LOG_PATH=${MERGE_O_DIR}${BARCODE}/log
-    echo "${FLASH_PATH} -t 2 -m ${MERGE_OVERLAP_MIN} -M 300 -x ${MERGE_ERROR_RATE} \
+    echo "${FLASH_PATH} -t 4 -m ${MERGE_OVERLAP_MIN} -M 300 -x ${MERGE_ERROR_RATE} \
     -O ${R1_INPUT_PATH} ${R2_INPUT_PATH} -d ${MERGE_O_DIR}${BARCODE}/ &> ${LOG_PATH} \
     && ${PYTHON_PATH} ${SCR_TRIM_MERGE_O} ${MERGE_O_DIR}${BARCODE}/out.extendedFrags.fastq \
     ${R1_INPUT_PATH} ${R2_INPUT_PATH} ${MERGE_O_DIR}${BARCODE}.fastq"
         
-done)|parallel -j `expr ${THREADS} / 2`
+done)|parallel -j `expr ${THREADS} / 4`
 
 #Merge Rescue
 BARCODE_ARR=$(ls -p ${MERGE_O_DIR}|rev |grep ^/|cut -d/ -f2|rev)
@@ -440,11 +440,11 @@ fi
 BARCODE_ARR=$(ls ${INPUT_DIR}*.faa|rev |cut -d/ -f1|rev|cut -d. -f1)
 (for BARCODE in $BARCODE_ARR;do
     if [ "$DIAMOND" = "1" ];then
-        echo -n "${DIAMOND_PATH} blastp -p 1 -e 1e-5 -k 1 -d ${REF_POLB_HOMOLOGY_SEARCH} \
+        echo -n "${DIAMOND_PATH} blastp -p 4 -e 1e-5 -k 1 -d ${REF_POLB_HOMOLOGY_SEARCH} \
         -q ${INPUT_DIR}${BARCODE}.faa -o ${OUTPUT_DIR}${BARCODE}.res > ${OUTPUT_DIR}${BARCODE}.log"
     else
         echo -n "${BLASTP_PATH} -query ${INPUT_DIR}${BARCODE}.faa -db $REF_POLB_HOMOLOGY_SEARCH \
-        -out ${OUTPUT_DIR}${BARCODE}.res -evalue 1e-5 -outfmt 6 -max_target_seqs 1 "
+        -out ${OUTPUT_DIR}${BARCODE}.res -evalue 1e-5 -outfmt 6 -max_target_seqs 1 -num_threads 4"
     fi
 	echo "&& cat ${OUTPUT_DIR}$BARCODE.res|grep MEGA|cut -f1|sort -u > ${OUTPUT_DIR}$BARCODE.tit \
     && test -s ${OUTPUT_DIR}$BARCODE.tit \
@@ -453,7 +453,7 @@ BARCODE_ARR=$(ls ${INPUT_DIR}*.faa|rev |cut -d/ -f1|rev|cut -d. -f1)
 	&& cat ${OUTPUT_DIR}$BARCODE.tit |cut -dF -f1|sort -u > ${OUTPUT_DIR}${BARCODE}_fna.tit \
 	&& $BLASTDBCMD_PATH -db ${INPUT_DIR}$BARCODE.fna \
 	-entry_batch ${OUTPUT_DIR}${BARCODE}_fna.tit -out ${OUTPUT_DIR}$BARCODE.fna"
-done)|parallel -j `expr ${THREADS} / 1`
+done)|parallel -j `expr ${THREADS} / 4`
 
 Footer
 
@@ -475,29 +475,6 @@ Footer
   # -> blast makes a file which has title and the sequence 
 }
 
-ALIGNMENT1(){
-Header
-
-BARCODE_ARR=$(ls ${INPUT_DIR}*.faa|rev |cut -d/ -f1|rev|cut -d. -f1)
-
-(for BARCODE in $BARCODE_ARR;do
-    echo "${MAFFT_PATH} --quiet --thread 6 --6merpair --addfragments ${INPUT_DIR}$BARCODE.faa \
-    ${REF_DESIGN_PROT_ALN} > ${OUTPUT_DIR}$BARCODE.aln \
-    && ${PYTHON_PATH} ${SCR_TRIM_COMMON_REGION} ${REF_DESIGN_PRIMER_NUCL_ALN} ${OUTPUT_DIR}$BARCODE.aln \
-    ${INPUT_DIR}$BARCODE.fna ${OUTPUT_DIR}${BARCODE}_Trimed.faa ${OUTPUT_DIR}${BARCODE}_Trimed.fna \
-    && ${MAFFT_PATH} --quiet --thread 6 --6merpair --addfragments ${OUTPUT_DIR}${BARCODE}_Trimed.faa \
-    ${REF_PPLACER_ALN} > ${OUTPUT_DIR}${BARCODE}_Trimed.faa.combo.fasta \
-    && ${PPLACER_PATH} -j 6 --verbosity 0 -o ${OUTPUT_DIR}${BARCODE}_Trimed.faa.combo.jplace \
-    -t ${REF_PPLACER_RES} -s ${REF_PPLACER_INFO} ${OUTPUT_DIR}${BARCODE}_Trimed.faa.combo.fasta > /dev/null \
-    && ${PYTHON_PATH} ${SCR_PPLACER_DECODE} ${OUTPUT_DIR}${BARCODE}_Trimed.faa.combo.jplace > ${OUTPUT_DIR}${BARCODE}_Trimed.tit \
-    && ${MAKEBLASTDB_PATH} -dbtype prot -in ${OUTPUT_DIR}${BARCODE}_Trimed.faa -parse_seqids -hash_index > ${OUTPUT_DIR}${BARCODE}_Trimed.faa.log \
-    && ${MAKEBLASTDB_PATH} -dbtype nucl -in ${OUTPUT_DIR}${BARCODE}_Trimed.fna -parse_seqids -hash_index > ${OUTPUT_DIR}${BARCODE}_Trimed.fna.log \
-    && ${BLASTDBCMD_PATH} -db ${OUTPUT_DIR}${BARCODE}_Trimed.faa -entry_batch ${OUTPUT_DIR}${BARCODE}_Trimed.tit -out ${OUTPUT_DIR}${BARCODE}_Pplacer.faa \
-    && ${BLASTDBCMD_PATH} -db ${OUTPUT_DIR}${BARCODE}_Trimed.fna -entry_batch ${OUTPUT_DIR}${BARCODE}_Trimed.tit -out ${OUTPUT_DIR}${BARCODE}_Pplacer.fna"
-done)|parallel -j `expr ${THREADS} / 6`
-
-Footer
-}
 
 ALIGNMENT(){
 Header
@@ -531,8 +508,8 @@ Footer
 # MERGE
 # DEDUPLICATION
 # FAA
-# BLASTP
-ALIGNMENT
+BLASTP
+# ALIGNMENT
 
 
 Logger "-Finish Pipeline"

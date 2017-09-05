@@ -230,7 +230,7 @@ BARCODE_ARR=$(ls ${INPUT_DIR}*${READ_PATTERN[0]}|rev |cut -d/ -f1|rev|cut -d_ -f
     echo "${TRIMMOMATIC_PATH} PE -threads 4 -phred33 -trimlog ${LOG_PATH} \
     ${R1_INPUT_PATH} ${R2_INPUT_PATH} ${R1_OUTPUT_PATH} ${R1_NOPAIR_OUTPUT_PATH} \
     ${R2_OUTPUT_PATH} ${R2_NOPAIR_OUTPUT_PATH} AVGQUAL:5 MINLEN:40 &> /dev/null "
-done)|parallel -j `expr ${THREADS} / 4`
+done)|python /aptmp/yanzeli/Paper_pipeline/Scripts/mult_qsub.py|qsub
 
 Footer
 }
@@ -503,12 +503,12 @@ Footer
 }
 
 A5G40
-CUTADAPT_G40
-MERGE
-DEDUPLICATION
-FAA
-BLASTP
-ALIGNMENT
+# CUTADAPT_G40
+# MERGE
+# DEDUPLICATION
+# FAA
+# BLASTP
+# ALIGNMENT
 
 
 Logger "-Finish Pipeline"
