@@ -229,11 +229,11 @@ BARCODE_ARR=$(ls ${INPUT_DIR}*${READ_PATTERN[0]}|rev |cut -d/ -f1|rev|cut -d_ -f
     R1_NOPAIR_OUTPUT_PATH=${OUTPUT_DIR}${BARCODE}_np${READ_PATTERN[0]}
     R2_NOPAIR_OUTPUT_PATH=${OUTPUT_DIR}${BARCODE}_np${READ_PATTERN[1]}    
     LOG_PATH=${OUTPUT_DIR}${BARCODE}.log    
-    echo "${TRIMMOMATIC_PATH} PE -threads 4 -phred33 -trimlog ${LOG_PATH} \
+    echo "${TRIMMOMATIC_PATH} PE -threads 8 -phred33 -trimlog ${LOG_PATH} \
     ${R1_INPUT_PATH} ${R2_INPUT_PATH} ${R1_OUTPUT_PATH} ${R1_NOPAIR_OUTPUT_PATH} \
     ${R2_OUTPUT_PATH} ${R2_NOPAIR_OUTPUT_PATH} AVGQUAL:5 MINLEN:40 &> /dev/null "
 done) > TRIMMOMATIC.com
-qsubarraypbs -sync -q sp -l select=1:ncpus=4:mem=40gb TRIMMOMATIC.com
+qsubarraypbs -sync -q sp -l select=1:ncpus=8:mem=40gb TRIMMOMATIC.com
 
 Footer
 }
@@ -309,10 +309,10 @@ BARCODE_ARR=$(ls ${INPUT_DIR}*${READ_PATTERN[0]}|grep -v _np|rev |cut -d/ -f1|re
     
     mkdir -p ${MERGE_I_DIR}${BARCODE}
     LOG_PATH=${MERGE_I_DIR}${BARCODE}/log
-    echo "$FLASH_PATH -t 4 -m ${MERGE_OVERLAP_MIN} -M 300 -x ${MERGE_ERROR_RATE} \
+    echo "$FLASH_PATH -t 8 -m ${MERGE_OVERLAP_MIN} -M 300 -x ${MERGE_ERROR_RATE} \
     ${R1_INPUT_PATH} ${R2_INPUT_PATH} -d ${MERGE_I_DIR}${BARCODE}/ &> ${LOG_PATH}"
 done) > FLASH.com
-qsubarraypbs -sync -q sp -l select=1:ncpus=4:mem=40gb FLASH.com
+qsubarraypbs -sync -q sp -l select=1:ncpus=8:mem=40gb FLASH.com
 
 #Explanation: flash
    #takes two input files and merges them.
@@ -333,13 +333,13 @@ BARCODE_ARR=$(ls -p ${MERGE_I_DIR}|rev |cut -d/ -f2|rev)
     
     mkdir -p ${MERGE_O_DIR}${BARCODE}
     LOG_PATH=${MERGE_O_DIR}${BARCODE}/log
-    echo "${FLASH_PATH} -t 4 -m ${MERGE_OVERLAP_MIN} -M 300 -x ${MERGE_ERROR_RATE} \
+    echo "${FLASH_PATH} -t 8 -m ${MERGE_OVERLAP_MIN} -M 300 -x ${MERGE_ERROR_RATE} \
     -O ${R1_INPUT_PATH} ${R2_INPUT_PATH} -d ${MERGE_O_DIR}${BARCODE}/ &> ${LOG_PATH} \
     && ${PYTHON_PATH} ${SCR_TRIM_MERGE_O} ${MERGE_O_DIR}${BARCODE}/out.extendedFrags.fastq \
     ${R1_INPUT_PATH} ${R2_INPUT_PATH} ${MERGE_O_DIR}${BARCODE}.fastq"
         
 done) > FLASH2.com
-qsubarraypbs -sync -q sp -l select=1:ncpus=4:mem=40gb FLASH2.com
+qsubarraypbs -sync -q sp -l select=1:ncpus=8:mem=40gb FLASH2.com
 
 #Merge Rescue
 BARCODE_ARR=$(ls -p ${MERGE_O_DIR}|rev |grep ^/|cut -d/ -f2|rev)
@@ -356,7 +356,7 @@ BARCODE_ARR=$(ls -p ${MERGE_O_DIR}|rev |grep ^/|cut -d/ -f2|rev)
 
     
 done) > SCR_MERGE_RESURE.com
-qsubarraypbs -sync -q sp -l select=1:ncpus=1:mem=10gb SCR_MERGE_RESURE.com
+qsubarraypbs -sync -q sp -l select=1:ncpus=8:mem=10gb SCR_MERGE_RESURE.com
 
 
 
@@ -455,7 +455,7 @@ BARCODE_ARR=$(ls ${INPUT_DIR}*.faa|rev |cut -d/ -f1|rev|cut -d. -f1)
         -q ${INPUT_DIR}${BARCODE}.faa -o ${OUTPUT_DIR}${BARCODE}.res > ${OUTPUT_DIR}${BARCODE}.log"
     else
         echo -n "${BLASTP_PATH} -query ${INPUT_DIR}${BARCODE}.faa -db $REF_POLB_HOMOLOGY_SEARCH \
-        -out ${OUTPUT_DIR}${BARCODE}.res -evalue 1e-5 -outfmt 6 -max_target_seqs 1 -num_threads 4"
+        -out ${OUTPUT_DIR}${BARCODE}.res -evalue 1e-5 -outfmt 6 -max_target_seqs 1 -num_threads 2"
     fi
 	echo "&& cat ${OUTPUT_DIR}$BARCODE.res|grep MEGA|cut -f1|sort -u > ${OUTPUT_DIR}$BARCODE.tit \
     && test -s ${OUTPUT_DIR}$BARCODE.tit \
@@ -494,9 +494,9 @@ Header
 BARCODE_ARR=$(ls ${INPUT_DIR}*.faa|rev |cut -d/ -f1|rev|cut -d. -f1)
 
 (for BARCODE in $BARCODE_ARR;do
-    echo "${MAFFT_PATH} --quiet --thread 8 --6merpair --addfragments ${INPUT_DIR}$BARCODE.faa \
+    echo "${MAFFT_PATH} --quiet --thread 20 --6merpair --addfragments ${INPUT_DIR}$BARCODE.faa \
     ${REF_PPLACER_ALN} > ${OUTPUT_DIR}${BARCODE}.combo.fasta \
-    && ${PPLACER_PATH} -j 8 --verbosity 0 -o ${OUTPUT_DIR}${BARCODE}.combo.jplace \
+    && ${PPLACER_PATH} -j 20 --verbosity 0 -o ${OUTPUT_DIR}${BARCODE}.combo.jplace \
     -t ${REF_PPLACER_RES} -s ${REF_PPLACER_INFO} ${OUTPUT_DIR}${BARCODE}.combo.fasta > /dev/null \
     && ${PYTHON_PATH} ${SCR_PPLACER_DECODE} ${OUTPUT_DIR}${BARCODE}.combo.jplace > ${OUTPUT_DIR}${BARCODE}_Pplacer.tit \
     && cut -dF -f1 ${OUTPUT_DIR}${BARCODE}_Pplacer.tit > ${OUTPUT_DIR}${BARCODE}_Pplacer_fna.tit \
@@ -506,22 +506,22 @@ BARCODE_ARR=$(ls ${INPUT_DIR}*.faa|rev |cut -d/ -f1|rev|cut -d. -f1)
     -entry_batch ${OUTPUT_DIR}${BARCODE}_Pplacer.tit -out ${OUTPUT_DIR}${BARCODE}_Pplacer.faa \
     && ${BLASTDBCMD_PATH} -db ${INPUT_DIR}$BARCODE.fna \
     -entry_batch ${OUTPUT_DIR}${BARCODE}_Pplacer_fna.tit -out ${OUTPUT_DIR}${BARCODE}_Pplacer.fna \
-    && ${MAFFT_PATH} --quiet --thread 8 --6merpair --addfragments ${OUTPUT_DIR}${BARCODE}_Pplacer.faa \
+    && ${MAFFT_PATH} --quiet --thread 20 --6merpair --addfragments ${OUTPUT_DIR}${BARCODE}_Pplacer.faa \
     ${REF_DESIGN_PROT_ALN} > ${OUTPUT_DIR}$BARCODE.aln \
     && ${PYTHON_PATH} ${SCR_TRIM_COMMON_REGION} ${REF_DESIGN_PRIMER_NUCL_ALN} ${OUTPUT_DIR}$BARCODE.aln \
     ${OUTPUT_DIR}${BARCODE}_Pplacer.fna ${OUTPUT_DIR}${BARCODE}_Trimmed.faa ${OUTPUT_DIR}${BARCODE}_Trimmed.fna"
 done) > MAFFT.com
-qsubarraypbs -sync -q sp -l select=1:ncpus=8:mem=80gb MAFFT.com
+qsubarraypbs -sync -q sp -l select=1:ncpus=20:mem=80gb MAFFT.com
 
 Footer
 }
 
-A5G40
+# A5G40
 # CUTADAPT_G40
 # MERGE
 # DEDUPLICATION
-# FAA
-# BLASTP
+FAA
+BLASTP
 # ALIGNMENT
 
 

@@ -26,7 +26,7 @@ def Calc_table(clstr_path):
             series_arr+=[barcode_size_series]
      
     OTU_barcode_table=pd.DataFrame(series_arr).fillna(0).astype("int")
-    OTU_barcode_table.to_csv(clstr_path+".csv")
+    #OTU_barcode_table.to_csv(clstr_path+".csv")
     return OTU_barcode_table
 
 
