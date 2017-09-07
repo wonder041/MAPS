@@ -1,5 +1,6 @@
 import pandas as pd
 import numpy as np
+import os
 
 def Calc_table(clstr_path):
     abstract_barcode=lambda line:line.split(">")[1].split("N")[0]
@@ -26,7 +27,10 @@ def Calc_table(clstr_path):
             series_arr+=[barcode_size_series]
      
     OTU_barcode_table=pd.DataFrame(series_arr).fillna(0).astype("int")
-    #OTU_barcode_table.to_csv(clstr_path+".csv")
+    try:
+        OTU_barcode_table.to_csv(clstr_path+".csv")
+    except:
+        pass
     return OTU_barcode_table
 
 

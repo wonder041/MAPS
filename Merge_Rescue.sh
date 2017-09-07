@@ -34,7 +34,7 @@ mkdir -p ${OUTPUT_DIR}${BARCODE}/
 
 TRIM_MERGE(){
     mkdir -p ${OUTPUT_DIR}${BARCODE}/${QUAL_NOW}_${SIZE_NOW}/
-   ${TRIMMOMATIC_PATH} PE -threads 8 -phred33 \
+   ${TRIMMOMATIC_PATH} PE -threads 4 -phred33 \
    ${INPUT_PATH}/out.notCombined_1.fastq \
    ${INPUT_PATH}/out.notCombined_2.fastq \
    ${OUTPUT_DIR}${BARCODE}/${QUAL_NOW}_${SIZE_NOW}/Trim${READ_PATTERN[0]} \
@@ -42,15 +42,11 @@ TRIM_MERGE(){
    ${OUTPUT_DIR}${BARCODE}/${QUAL_NOW}_${SIZE_NOW}/Trim${READ_PATTERN[1]} \
    /dev/null \
    SLIDINGWINDOW:${SIZE_NOW}:${QUAL_NOW} \
-   &> /dev/null
-   ${FLASH_PATH} \
-    -t 8 \
-    -m 20 \
-    -M 300 \
-    -x ${MERGE_ERROR_RATE} \
+   &> ${OUTPUT_DIR}${BARCODE}/${QUAL_NOW}_${SIZE_NOW}/Trim.log
+   ${FLASH_PATH} -t 4 -m 20 -M 300 -x ${MERGE_ERROR_RATE} \
     ${OUTPUT_DIR}${BARCODE}/${QUAL_NOW}_${SIZE_NOW}/Trim${READ_PATTERN[0]} \
     ${OUTPUT_DIR}${BARCODE}/${QUAL_NOW}_${SIZE_NOW}/Trim${READ_PATTERN[1]} \
-    -d ${OUTPUT_DIR}${BARCODE}/${QUAL_NOW}_${SIZE_NOW}/ > /dev/null
+    -d ${OUTPUT_DIR}${BARCODE}/${QUAL_NOW}_${SIZE_NOW}/ > ${OUTPUT_DIR}${BARCODE}/${QUAL_NOW}_${SIZE_NOW}/FLASH.log
 
 }
 
@@ -68,11 +64,13 @@ while [[ ture ]] ;do
         exit
     fi
         
-    if [[ ! -f ${OUTPUT_DIR}${BARCODE}/${QUAL_NOW}_${SIZE_NOW}/out.extendedFrags.fastq ]] ;then
+    while [[ ! -f ${OUTPUT_DIR}${BARCODE}/${QUAL_NOW}_${SIZE_NOW}/out.extendedFrags.fastq ]] ;do
         TRIM_MERGE
-    fi
+    done
     
     NUM_NOW=$(cut -f2 ${OUTPUT_DIR}${BARCODE}/${QUAL_NOW}_${SIZE_NOW}/out.hist|awk '{ sum += $1 }; END { print sum }')
+        
+    
     echo "QUAL $QUAL_NOW SIZE $SIZE_NOW NUM $NUM_NOW" >> ${LOG_PATH}
     
     if [[ $NUM_NOW -lt $NUM_PRE ]] ;then

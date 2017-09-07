@@ -26,13 +26,12 @@ def Calc_size_arr(clstr_path):
     
 size_arr=Calc_size_arr(clstr_path)
 
-print("\t".join(str(size) for size in size_arr))  
+# print("\t".join(str(size) for size in size_arr))  
 
-size_arr=[math.log10(size) for size in size_arr if size > 1]
+size_arr=[size for size in size_arr if size > 1]
 plt.clf()    
-plt.plot(range(len(size_arr)),sorted(size_arr,reverse=True), label="111")
-# plt.ylabel('Number of OTUs Observed')
-# plt.xlabel("Number of Reads Sampled (million reads)")
-# plt.legend(title="Percent Identity",bbox_to_anchor=(1.05, 1), loc=2, fontsize=12)
-# plt.legend(title="Identity",bbox_to_anchor=(0, 1), loc=2,fontsize=7)
-# plt.savefig("/user1/scl1/yanzeli/Megaviridae/Figures/Rank_170904.png",bbox_inches='tight',pad_inches=0.1,dpi=1000,orientation="portrait")
+plt.xlabel('Rank')
+plt.ylabel("Abundance")
+plt.semilogy(range(len(size_arr)),sorted(size_arr,reverse=True), label="111")
+# plt.plot(range(len(size_arr)),sorted(size_arr,reverse=True), label="111")
+plt.savefig("/user1/scl1/yanzeli/Megaviridae/Figures/Rank_170904.png",bbox_inches='tight',pad_inches=0.1,dpi=1000,orientation="portrait")

@@ -3,6 +3,17 @@ import pandas as pd
 import numpy as np
 import os
 import matplotlib.pyplot as plt
+import multiprocessing
+import itertools
+
+def Sampling_OTU_arr(tup):
+    OTU_arr,sample_size_arr=tup
+    OTU_size_arr_freg=[]
+    for i in range(100):
+        random.shuffle(OTU_arr)
+        OTU_size_arr_freg.append([len(set(OTU_arr[:sample_size])) for sample_size in sample_size_arr])
+    return [sum(OTU_sizes)/10 for OTU_sizes in zip(*OTU_size_arr_freg)]
+
 
 def Calculate_point(size_arr):
     #discard singleton OTUs
@@ -15,18 +26,35 @@ def Calculate_point(size_arr):
     #calculate sample size
     sample_size_port_arr=[j*(0.5**i) for i in range(10) for j in [k/16 for k in range(17,9,-1)]]
     sample_size_port_arr.append(0)
+    sample_size_port_arr.insert(1,1-1/50)
     sample_size_arr=[int(total_number*port) for port in sample_size_port_arr]
+    
+    
     
     OTU_arr=[]
     [OTU_arr.append(OTU) for OTU,size in enumerate(size_arr) for i in range(size)]
     
     OTU_size_arr=[0 for i in range(len(sample_size_arr))]
     
-    for i in range(nboot):
-        random.shuffle(OTU_arr)
-        for sample_number,sample_size in enumerate(sample_size_arr):
-            OTU_size_arr[sample_number]+=len(set(OTU_arr[:sample_size]))/nboot 
     
+
+    
+    
+    pool = multiprocessing.Pool(20)
+    str_gen = pool.imap_unordered(Sampling_OTU_arr,((OTU_arr,sample_size_arr) for i in range(nboot)))    
+    OTU_size_arr=[sum(OTU_sizes)/nboot for OTU_sizes in zip(*str_gen)]
+    
+    
+    
+    # for i in range(nboot):
+        # random.shuffle(OTU_arr)
+        # for sample_number,sample_size in enumerate(sample_size_arr):
+            # OTU_size_arr[sample_number]+=len(set(OTU_arr[:sample_size]))/nboot 
+            
+            
+    dif_sample_size=sample_size_arr[0]-sample_size_arr[1]
+    dif_OTU_size=OTU_size_arr[0]-OTU_size_arr[1]
+    print(dif_sample_size,dif_OTU_size,dif_OTU_size/dif_sample_size*100000)
     return sample_size_arr, OTU_size_arr
         
 def Darw_various_identity():
@@ -143,7 +171,7 @@ def Darw_various_samples():
     plt.ylabel('Number of OTUs Observed')
     plt.xlabel("Number of Reads Sampled (million reads)")
     plt.legend(title="Sampling point",bbox_to_anchor=(1, 0), loc=4, fontsize=10)
-    plt.savefig("/user1/scl1/yanzeli/Megaviridae/Figures/5samples_170824.png",bbox_inches='tight',pad_inches=0.1,dpi=1000,orientation="portrait")
+    plt.savefig("/user1/scl1/yanzeli/Megaviridae/Figures/5samples_170907.png",bbox_inches='tight',pad_inches=0.1,dpi=1000,orientation="portrait")
 
 
         
@@ -151,7 +179,7 @@ def Darw_various_samples():
 if __name__ == "__main__":
     # Darw_various_identity()
     # Darw_various_PP()
-    # Darw_various_samples()
+    Darw_various_samples()
     
     
 

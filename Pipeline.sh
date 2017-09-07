@@ -233,7 +233,7 @@ BARCODE_ARR=$(ls ${INPUT_DIR}*${READ_PATTERN[0]}|rev |cut -d/ -f1|rev|cut -d_ -f
     ${R1_INPUT_PATH} ${R2_INPUT_PATH} ${R1_OUTPUT_PATH} ${R1_NOPAIR_OUTPUT_PATH} \
     ${R2_OUTPUT_PATH} ${R2_NOPAIR_OUTPUT_PATH} AVGQUAL:5 MINLEN:40 &> /dev/null "
 done) > TRIMMOMATIC.com
-qsubarraypbs -sync -q sp -l select=1:ncpus=8:mem=40gb TRIMMOMATIC.com
+qsubarraypbs -sync -q sp -l select=1:ncpus=8:mem=80gb TRIMMOMATIC.com
 
 Footer
 }
@@ -312,7 +312,7 @@ BARCODE_ARR=$(ls ${INPUT_DIR}*${READ_PATTERN[0]}|grep -v _np|rev |cut -d/ -f1|re
     echo "$FLASH_PATH -t 8 -m ${MERGE_OVERLAP_MIN} -M 300 -x ${MERGE_ERROR_RATE} \
     ${R1_INPUT_PATH} ${R2_INPUT_PATH} -d ${MERGE_I_DIR}${BARCODE}/ &> ${LOG_PATH}"
 done) > FLASH.com
-qsubarraypbs -sync -q sp -l select=1:ncpus=8:mem=40gb FLASH.com
+qsubarraypbs -sync -q sp -l select=1:ncpus=8:mem=80gb FLASH.com
 
 #Explanation: flash
    #takes two input files and merges them.
@@ -339,7 +339,7 @@ BARCODE_ARR=$(ls -p ${MERGE_I_DIR}|rev |cut -d/ -f2|rev)
     ${R1_INPUT_PATH} ${R2_INPUT_PATH} ${MERGE_O_DIR}${BARCODE}.fastq"
         
 done) > FLASH2.com
-qsubarraypbs -sync -q sp -l select=1:ncpus=8:mem=40gb FLASH2.com
+qsubarraypbs -sync -q sp -l select=1:ncpus=8:mem=80gb FLASH2.com
 
 #Merge Rescue
 BARCODE_ARR=$(ls -p ${MERGE_O_DIR}|rev |grep ^/|cut -d/ -f2|rev)
@@ -356,7 +356,7 @@ BARCODE_ARR=$(ls -p ${MERGE_O_DIR}|rev |grep ^/|cut -d/ -f2|rev)
 
     
 done) > SCR_MERGE_RESURE.com
-qsubarraypbs -sync -q sp -l select=1:ncpus=8:mem=10gb SCR_MERGE_RESURE.com
+qsubarraypbs -sync -q sp -l select=1:ncpus=4:mem=40gb SCR_MERGE_RESURE.com
 
 
 
@@ -371,6 +371,8 @@ qsubarraypbs -sync -q sp -l select=1:ncpus=1:mem=10gb CAT.com
 
 Footer
 }
+
+
 
 DEDUPLICATION(){
 Header
@@ -511,18 +513,18 @@ BARCODE_ARR=$(ls ${INPUT_DIR}*.faa|rev |cut -d/ -f1|rev|cut -d. -f1)
     && ${PYTHON_PATH} ${SCR_TRIM_COMMON_REGION} ${REF_DESIGN_PRIMER_NUCL_ALN} ${OUTPUT_DIR}$BARCODE.aln \
     ${OUTPUT_DIR}${BARCODE}_Pplacer.fna ${OUTPUT_DIR}${BARCODE}_Trimmed.faa ${OUTPUT_DIR}${BARCODE}_Trimmed.fna"
 done) > MAFFT.com
-qsubarraypbs -sync -q sp -l select=1:ncpus=20:mem=80gb MAFFT.com
+qsubarraypbs -sync -q sp -l select=1:ncpus=20:mem=200gb MAFFT.com
 
 Footer
 }
 
-# A5G40
-# CUTADAPT_G40
-# MERGE
-# DEDUPLICATION
-FAA
-BLASTP
-# ALIGNMENT
+A5G40
+CUTADAPT_G40
+MERGE
+#DEDUPLICATION
+#FAA
+#BLASTP
+#ALIGNMENT
 
 
 Logger "-Finish Pipeline"
