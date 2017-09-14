@@ -5,15 +5,12 @@ import os
 import matplotlib.pyplot as plt
 import multiprocessing
 import itertools
+import json
 
 def Sampling_OTU_arr(tup):
     OTU_arr,sample_size_arr=tup
-    OTU_size_arr_freg=[]
-    for i in range(100):
-        random.shuffle(OTU_arr)
-        OTU_size_arr_freg.append([len(set(OTU_arr[:sample_size])) for sample_size in sample_size_arr])
-    return [sum(OTU_sizes)/10 for OTU_sizes in zip(*OTU_size_arr_freg)]
-
+    random.shuffle(OTU_arr)
+    return [len(set(OTU_arr[:sample_size])) for sample_size in sample_size_arr]
 
 def Calculate_point(size_arr):
     #discard singleton OTUs
@@ -21,12 +18,12 @@ def Calculate_point(size_arr):
     total_number=sum(size_arr)
     
     #calculate loop number
-    nboot=int(10000000/total_number)+1
+    # nboot=int(100000000/total_number)+1
+    nboot=min(int(100000000/total_number)+1,20)
     
     #calculate sample size
-    sample_size_port_arr=[j*(0.5**i) for i in range(10) for j in [k/16 for k in range(17,9,-1)]]
+    sample_size_port_arr=[j*(0.5**i) for i in range(10) for j in [k/16 for k in range(16,9,-1)]]
     sample_size_port_arr.append(0)
-    sample_size_port_arr.insert(1,1-1/50)
     sample_size_arr=[int(total_number*port) for port in sample_size_port_arr]
     
     
@@ -36,37 +33,32 @@ def Calculate_point(size_arr):
     
     OTU_size_arr=[0 for i in range(len(sample_size_arr))]
     
-    
+    # pool = multiprocessing.Pool(20)
+    # str_gen = pool.imap_unordered(Sampling_OTU_arr,((OTU_arr,sample_size_arr) for i in range(nboot)))   
 
+    str_gen=(Sampling_OTU_arr(tup) for tup in ((OTU_arr,sample_size_arr) for i in range(nboot)))
     
-    
-    pool = multiprocessing.Pool(20)
-    str_gen = pool.imap_unordered(Sampling_OTU_arr,((OTU_arr,sample_size_arr) for i in range(nboot)))    
     OTU_size_arr=[sum(OTU_sizes)/nboot for OTU_sizes in zip(*str_gen)]
-    
-    
-    
-    # for i in range(nboot):
-        # random.shuffle(OTU_arr)
-        # for sample_number,sample_size in enumerate(sample_size_arr):
-            # OTU_size_arr[sample_number]+=len(set(OTU_arr[:sample_size]))/nboot 
-            
-            
+
+    return sample_size_arr, OTU_size_arr
+
+def Calc_slope(sample_size_arr,OTU_size_arr):
     dif_sample_size=sample_size_arr[0]-sample_size_arr[1]
     dif_OTU_size=OTU_size_arr[0]-OTU_size_arr[1]
-    print(dif_sample_size,dif_OTU_size,dif_OTU_size/dif_sample_size*100000)
-    return sample_size_arr, OTU_size_arr
-        
+    return dif_OTU_size/dif_sample_size*1000000
+
+    
 def Darw_various_identity():
 
-    input_dir="/aptmp/yanzeli/Paper_pipeline/Outputs_170812/8_POSTPROCESS/"
+    # input_dir="/aptmp/yanzeli/Paper_pipeline/Outputs_ALL_170907_0/Post_pipeline/"
     plt.figure(figsize=(4.5,6))
     
     identity_point_dic={}
     identity_tup=(99,97,95,90)
-
+    
+    
     for identity in identity_tup:
-        clstr_path=input_dir+"S0_"+str(identity)+".fna.clstr"
+        clstr_path=input_dir+"S0"+str(identity)+".fna.clstr"
         if os.path.exists(clstr_path+".csv"):
             OTU_barcode_table=pd.read_csv(clstr_path+".csv")
         else:
@@ -79,20 +71,25 @@ def Darw_various_identity():
         size_arr=S0_nosingleton_table.sum(1).tolist()
         
         sample_size_arr, OTU_size_arr=Calculate_point(size_arr)
+        identity_point_dic[identity]=(sample_size_arr, OTU_size_arr)
         
+    plt.clf()    
+    for identity,(sample_size_arr, OTU_size_arr) in identity_point_dic.items():
+        slope=Calc_slope(sample_size_arr,OTU_size_arr)
+        lable=format(slope, '0.2f')+"/1M"
         # print(sample_size_arr, OTU_size_arr)
         plt.plot([x/1000000 for x in sample_size_arr],OTU_size_arr, label=str(identity)+"%")
-        plt.annotate(xy=[sample_size_arr[0]/1000000-2,OTU_size_arr[0]-700],s=str(identity)+"%:"+str(int(OTU_size_arr[0]+0.5)))
+        plt.annotate(xy=[sample_size_arr[0]/1000000-1.8,OTU_size_arr[0]-1000],s=lable)
 
     plt.ylabel('Number of OTUs Observed')
     plt.xlabel("Number of Reads Sampled (million reads)")
     plt.legend(title="Percent Identity",bbox_to_anchor=(1.05, 1), loc=2, fontsize=12)
     plt.legend(title="Identity",bbox_to_anchor=(0, 1), loc=2,fontsize=7)
-    plt.savefig("/user1/scl1/yanzeli/Megaviridae/Figures/Whole_rare4_170824.png",bbox_inches='tight',pad_inches=0.1,dpi=1000,orientation="portrait")
+    plt.savefig("/user1/scl1/yanzeli/Megaviridae/Figures/Whole_rare4_170912.png",bbox_inches='tight',pad_inches=0.1,dpi=1000,orientation="portrait")
         
 
 def Darw_various_PP():
-    clstr_path="/aptmp/yanzeli/Paper_pipeline/Outputs_170812/8_POSTPROCESS/S0_97.fna.clstr"
+    clstr_path="/aptmp/yanzeli/Paper_pipeline/Outputs_ALL_170907_0/Post_pipeline/S097.fna.clstr"
     
     if os.path.exists(clstr_path+".csv"):
         OTU_barcode_table=pd.read_csv(clstr_path+".csv")
@@ -122,10 +119,10 @@ def Darw_various_PP():
         axes[num//5,num%5].locator_params(axis='y', nbins=4)
         axes[num//5,num%5].text(1,0,PP,verticalalignment='bottom',horizontalalignment='right',transform=axes[num//5,num%5].transAxes,size=24 if "c" in PP else 48)
     
-    num+=1
-    axes[num//5,num%5].axis('off')
-    axes[num//5,num%5].text(1,0,"x-axis: Number of Reads Sampled \n(thousand reads)\ny-axis: Number of OTUs Observed\n(singleton OTUs are excluded)",verticalalignment='bottom',horizontalalignment='right',transform=axes[num//5,num%5].transAxes,size=12)
-    fig.savefig("/user1/scl1/yanzeli/Megaviridae/Figures/PP_rare_170824.png",bbox_inches="tight",dpi=600)
+    # num+=1
+    # axes[num//5,num%5].axis('off')
+    # axes[num//5,num%5].text(1,0,"x-axis: Number of Reads Sampled \n(thousand reads)\ny-axis: Number of OTUs Observed\n(singleton OTUs are excluded)",verticalalignment='bottom',horizontalalignment='right',transform=axes[num//5,num%5].transAxes,size=12)
+    fig.savefig("/user1/scl1/yanzeli/Megaviridae/Figures/PP_rare_170913.png",bbox_inches="tight",dpi=600)
 
     
 def Darw_various_samples():
@@ -153,33 +150,36 @@ def Darw_various_samples():
     
     for sample,(sample_size_arr, OTU_size_arr) in sample_points_dic.items():
         # sample_size_arr, OTU_size_arr=Calculate_point(size_arr)
-        
-        
+        slope=Calc_slope(sample_size_arr,OTU_size_arr)
+        print(sample,slope)
         # print(sample_size_arr, OTU_size_arr)
         plt.plot([x/1000000 for x in sample_size_arr],OTU_size_arr, label=sample_description_dic[sample])
         # print([sample_size_arr[0]/1000000-2,OTU_size_arr[0]-700])
+        
+        
+        annotation="reads:"+format(sample_size_arr[0], ',d')+" OTUs:"+format(int(OTU_size_arr[0]), ',d')+" slope:"+format(slope, '0.2f')
         if sample=="S0":
-            plt.annotate(xy=[sample_size_arr[0]/1000000-2.5,OTU_size_arr[0]-400],s=sample_description_dic[sample])
-            plt.annotate(xy=[sample_size_arr[0]/1000000-2.5,OTU_size_arr[0]-650],s="reads:"+format(sample_size_arr[0], ',d')+" OTUs:"+format(int(OTU_size_arr[0]), ',d'),fontsize=6)
+            plt.annotate(xy=[sample_size_arr[0]/1000000-3,OTU_size_arr[0]-500],s=sample_description_dic[sample])
+            plt.annotate(xy=[sample_size_arr[0]/1000000-3,OTU_size_arr[0]-750],s=annotation,fontsize=6)
         elif sample=="S3":
             plt.annotate(xy=[sample_size_arr[0]/1000000+0.2,OTU_size_arr[0]-150],s=sample_description_dic[sample])
-            plt.annotate(xy=[sample_size_arr[0]/1000000+0.2,OTU_size_arr[0]-400],s="reads:"+format(sample_size_arr[0], ',d')+" OTUs:"+format(int(OTU_size_arr[0]), ',d'),fontsize=6)
+            plt.annotate(xy=[sample_size_arr[0]/1000000+0.2,OTU_size_arr[0]-400],s=annotation,fontsize=6)
         else:
             plt.annotate(xy=[sample_size_arr[0]/1000000+0.2,OTU_size_arr[0]],s=sample_description_dic[sample])
-            plt.annotate(xy=[sample_size_arr[0]/1000000+0.2,OTU_size_arr[0]-250],s="reads:"+format(sample_size_arr[0], ',d')+" OTUs:"+format(int(OTU_size_arr[0]), ',d'),fontsize=6)
+            plt.annotate(xy=[sample_size_arr[0]/1000000+0.2,OTU_size_arr[0]-250],s=annotation,fontsize=6)
 
     plt.ylabel('Number of OTUs Observed')
     plt.xlabel("Number of Reads Sampled (million reads)")
     plt.legend(title="Sampling point",bbox_to_anchor=(1, 0), loc=4, fontsize=10)
     plt.savefig("/user1/scl1/yanzeli/Megaviridae/Figures/5samples_170907.png",bbox_inches='tight',pad_inches=0.1,dpi=1000,orientation="portrait")
-
+    
 
         
     
 if __name__ == "__main__":
     # Darw_various_identity()
-    # Darw_various_PP()
-    Darw_various_samples()
+    Darw_various_PP()
+    # Darw_various_samples()
     
     
 

@@ -3,7 +3,8 @@ import pandas as pd
 import multiprocessing
 
 resouce_dir="/aptmp/yanzeli/Megaviridae/Source_FL/"
-outputs_dir="/lustre1/aptmp/ideas2/yanzeli/Megaviridae/All_170905_2/"
+# outputs_dir="/lustre1/aptmp/ideas2/yanzeli/Megaviridae/All_170905_2/"
+outputs_dir="/lustre1/aptmp/ideas2/yanzeli/Megaviridae/All_170907_0/"
 barcode_arr=sorted(set(file_name.split("_")[0] for file_name in os.listdir(resouce_dir)))
     
 def Count_fastq(input_path):
@@ -49,7 +50,7 @@ barcode_arr_dic=dict(str_gen)
     
     
 df=pd.DataFrame(barcode_arr_dic).T
-df.to_csv("stat")
+df.to_csv("All_170907_0.stat")
 
     
 
