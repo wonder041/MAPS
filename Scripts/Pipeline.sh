@@ -20,11 +20,6 @@
 echo "-Start pipeline"
 VERSION="2.1"
 
-Usage(){
-# cpoy readme to here
-    echo "Under writing"
-}
-
 #read arguments
 while [ "$1" != "" ]; do
     case $1 in
@@ -59,7 +54,7 @@ while [ "$1" != "" ]; do
         -version | --version )  echo "${VERSION}"
                                 exit
                                 ;;
-        -qsub )
+        -qsub | -pbs )
                                 QSUB=1
                                 ;;
         -module )
@@ -69,8 +64,7 @@ while [ "$1" != "" ]; do
                                 shift
                                 TRIMMOMATIC_PATH=$1
                                 ;;
-        * )                     echo "!!Wrong argument!!"
-                                usage
+        * )                     echo "!!Wrong argument!! $1"
                                 exit 1
     esac
     shift

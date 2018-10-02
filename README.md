@@ -28,22 +28,23 @@ If you do not use PBS system, please modify the ```qsubarray``` commond in the t
 
 ## Usage
 Run this system by switching to ```Scripts``` directory and using ```sh Pipeline.sh``` or ```./Pipeline.sh```.
-* ```-maindir MAIN_DIR``` : Path of main directory, which should at least contain ```Scripts``` directory and ```References``` directory
+* ```-maindir MAIN_DIR``` : Path of main directory, which should at least contain ```Scripts``` directory and ```References``` directory<br>
 [default: the parten folder of this script (```Pipeline.sh```)]
-* ```-i SOURCES_DIR, -in SOURCES_DIR``` :  Path of input files, whose names should be ```[barcode]_R1.fastq``` and ```[barcode]_R2.fastq```
+* ```-i SOURCES_DIR, -in SOURCES_DIR``` :  Path of input files, whose names should be ```[barcode]_R1.fastq``` and ```[barcode]_R2.fastq```<br>
 [default: ```maindir/Sources/```)]
-* ```-o | -out``` : Path to store output, output filepath in the case of will be ```[barcode]_trimmed.fna``` and ```[barcode]_trimmed.fna``` in ```OUTPUTS_DIR/7_ALIGNMENT/```
+* ```-o | -out``` : Path to store output, output filepath in the case of will be ```[barcode]_trimmed.fna``` and ```[barcode]_trimmed.fna``` in ```OUTPUTS_DIR/7_ALIGNMENT/```<br>
 [default: ```maindir/Outputs/```)]
 * ```-qusb | -pbs``` : use PBS system, otherwise use GNU ```parallel```
 * ```-t | -threads``` : Specify number of threads to be used, only work for GNU ```parallel```
 * ```-module``` : use GNU module system, otherwise find software in ```PATH```
-* ```-bystep``` : run partical pipeline ```-bystep 123```
-1.A5G40 2.CUTADAPT_G40 3.MERGE 4.DEDUPLICATION 5.FAA 6.BLASTP 7.ALIGNMENT
+* ```-bystep``` : run paritical pipeline by one or more functions ```-bystep 123```<br>
+List of functions: 1.A5G40 2.CUTADAPT_G40 3.MERGE 4.DEDUPLICATION 5.FAA 6.BLASTP 7.ALIGNMENT
 
 ## List of reference and script files
 ### Scripts
 | Filename | Description |
 | ---- | :--- |
+|```Pipeline.sh```|main script|
 |```Decode_primer.py```|generate primer sequence option for cutadapt|
 |```Trim_merge_O.py```|trim primer sequence from merged reads using "outie"|
 |```Merge_Rescue.sh```|trim reads and merge again|
@@ -52,20 +53,19 @@ Run this system by switching to ```Scripts``` directory and using ```sh Pipeline
 |```Trim_common_region.py```|trim sequences alignment into common region|
 |```Pplacer_decode.py```|decode pplacer result file|
 |```Pplacer_fna_id.py```|convert names of DNA sequences into names of amino acid sequences|
-|```Pipeline.sh```|main script|
 
 ### References
 | Filename | Description |
 | ---- | :--- |
 |```primer.fna```  |primer sequences|
-|```mixture.txt``` |mixture used in cocktail method (opintional)|
+|```mixture.txt``` |primer mixture used in cocktail method|
 |```PolB_homology_search.faa``` |reference PolB sequences for homology search|
 |```PolB_design_prot.aln``` and ```PolB_design_primer_nucl.aln``` |reference alignment for trimming into common region|
 |```Pplacer.aln```, ```Pplacer.res``` and ```Pplacer.info``` |reference tree and alignment for pplacer pipeline|
 
 ## Authors
 
-* **Yanze Li** - *Initial work* - yanzeli@kuicr.kyoto-u.ac.jp
+* **Yanze Li**  - yanzeli@kuicr.kyoto-u.ac.jp
 
 ## References
 
@@ -74,4 +74,4 @@ http://www.mdpi.com/1999-4915/10/9/496
 
 ## Acknowledgments
 
-* Special thanks to Florian who helped in improving MAPS
+* Special thanks to Florian who helped a lot in improving MAPS
