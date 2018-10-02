@@ -52,6 +52,7 @@ Run this system by switching to ```Scripts``` directory and using ```sh Pipeline
 |```Trim_common_region.py```|trim sequences alignment into common region|
 |```Pplacer_decode.py```|decode pplacer result file|
 |```Pplacer_fna_id.py```|convert names of DNA sequences into names of amino acid sequences|
+|```Pipeline.sh```|main script|
 
 ### References
 | Filename | Description |
