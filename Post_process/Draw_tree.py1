@@ -4,7 +4,7 @@ import math
 
 
 tree = Tree("/aptmp/yanzeli/Paper_pipeline/Outputs_ALL_170907_0/Post_pipeline/S090.sub.combo.aln.rearranged_rename.tre")
-output_fig_path="/user1/scl1/yanzeli/Megaviridae/Figures/Tree_1000_170914.png"
+output_fig_path="/user1/scl1/yanzeli/Megaviridae/Figures/Tree_1000_170927.png"
 # output_fig_path="/user1/scl1/yanzeli/Megaviridae/Figures/Tree_1000_unscaled_170914.png"
 
 #########################################

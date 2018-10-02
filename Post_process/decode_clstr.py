@@ -2,9 +2,16 @@ import pandas as pd
 import numpy as np
 import os
 
-def Calc_table(clstr_path):
+def Calc_table(clstr_path,reload=False):
+    try:
+        return pd.read_csv(clstr_path+".csv",index_col=0)
+    except:
+        pass
+
+
     abstract_barcode=lambda line:line.split(">")[1].split("N")[0]
     abstract_size=lambda line:int(line.split("S")[2].split("F")[0].split("L")[0])
+    abstract_name=lambda line:line.split(">")[1].split(".")[0]
 
     series_arr=[]
     barcode_size_series=pd.Series(dtype="int")
@@ -19,6 +26,8 @@ def Calc_table(clstr_path):
                 continue
             barcode=abstract_barcode(line)
             size=abstract_size(line)
+            if line.strip().endswith("*"):
+                barcode_size_series.name=abstract_name(line)
             try:
                 barcode_size_series[barcode]+=size
             except KeyError:

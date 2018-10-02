@@ -21,4 +21,7 @@
 
 # sh ~/aptmp/Paper_pipeline/Scripts/Pipeline.sh -in /aptmp/yanzeli/Paper_pipeline/Sources/ -out /aptmp/yanzeli/Paper_pipeline/Outputs_170901/ -t 28
 # sh ~/aptmp/Paper_pipeline/Scripts/Pipeline.sh -in /aptmp/yanzeli/Paper_pipeline/Test_Sources/ -out /aptmp/yanzeli/Paper_pipeline/Test_Outputs_0/ -t 28 &
-sh /aptmp/yanzeli/Paper_pipeline/Scripts/Pipeline.sh -in /aptmp/yanzeli/Paper_pipeline/Test_Sources/ -out /lustre1/aptmp/ideas2/yanzeli/Megaviridae/Test_Outputs_1/ -t 100
+# sh /aptmp/yanzeli/Paper_pipeline/Scripts/Pipeline.sh -in /aptmp/yanzeli/Paper_pipeline/Test_Sources/ -out /lustre1/aptmp/ideas2/yanzeli/Megaviridae/Test_Outputs_1/ -t 100
+# /aptmp/yanzeli/Paper_pipeline/Scripts/Pipeline.sh -in /aptmp/yanzeli/Megaviridae/Source_FL/ -out /aptmp/ideas2/yanzeli/Megaviridae/All_170905_2
+/aptmp/yanzeli/Paper_pipeline/Scripts/Pipeline_180823.sh -in /aptmp/yanzeli/Megaviridae/Source_FL/ -out /aptmp/ideas2/yanzeli/Megaviridae/All_180823
+

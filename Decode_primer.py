@@ -9,12 +9,11 @@ PP_seq_dic=dict((seqr.id,str(seqr.seq)) for seqr in SeqIO.parse(primer_path,"fas
 
 #read mixtures
 with open(mixture_path,"r") as mixture_file:
-    maxture_lines=list(mixture_file)
-    PP_MP_mix_arr_dic=dict((line.strip().split("\t")[0],line.strip().split("\t")[1:]) for line in maxture_lines)
+    PP_MP_mix_arr_dic=dict((line.strip().split("\t")[0],line.strip().split("\t")[1:]) for line in mixture_bkp.txt if not line.startwith("#"))
 
 #convert PP->MP to MP->PP
 MP_mix_PP_dic_dic={}
-for nMP,MP in enumerate(("MP10","MP20","MP5")):
+for nMP,MP in enumerate(("MP5","MP10","MP20")):
     mix_set=set(MP_mix_arr[nMP] for MP_mix_arr in PP_MP_mix_arr_dic.values())
     MP_mix_PP_dic_dic[MP]=dict((mix,sorted([PP for PP,MP_mix_arr in PP_MP_mix_arr_dic.items() if MP_mix_arr[nMP]==mix]))for mix in mix_set)
 

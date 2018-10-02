@@ -1,18 +1,59 @@
-#!/aptmp/yanzeli/miniconda3/envs/ete3/bin/python
+import pandas as pd
+import numpy as np
+import os
+
+def Calc_table(clstr_path):
+    abstract_barcode=lambda line:line.split(">")[1].split("N")[0]
+    abstract_size=lambda line:int(line.split("S")[2].split("F")[0].split("L")[0])
+    abstract_name=lambda line:line.split(">")[1].split(".")[0]
+
+    series_arr=[]
+    barcode_size_series=pd.Series(dtype="int")
+
+
+    with open(clstr_path,"r") as clstr_file:
+        next(clstr_file)
+        for line in clstr_file:
+            if line.startswith('>Cluster'):
+                series_arr+=[barcode_size_series]
+                barcode_size_series=pd.Series(dtype="int")
+                continue
+            barcode=abstract_barcode(line)
+            size=abstract_size(line)
+            if line.strip().endswith("*"):
+                barcode_size_series.name=abstract_name(line)
+            try:
+                barcode_size_series[barcode]+=size
+            except KeyError:
+                barcode_size_series[barcode]=size
+        else:
+            series_arr+=[barcode_size_series]
+     
+    OTU_barcode_table=pd.DataFrame(series_arr).fillna(0).astype("int")
+    try:
+        OTU_barcode_table.to_csv(clstr_path+".csv")
+    except:
+        pass
+    return OTU_barcode_table
+
+clstr_path="/aptmp/yanzeli/Paper_pipeline/Outputs_ALL_170907_0/Post_pipeline/S090.faa.clstr"
+OTU_barcode_table=Calc_table(clstr_path)
+
+
+
 from ete3 import Tree,NodeStyle,TreeFace,faces,TreeStyle,TreeStyle,AttrFace,ClusterTree,ProfileFace,RectFace,CircleFace,TextFace
 import math
 
 
 tree = Tree("/aptmp/yanzeli/Paper_pipeline/Outputs_ALL_170907_0/Post_pipeline/S090.sub.combo.aln.rearranged_rename.tre")
-output_fig_path="/user1/scl1/yanzeli/Megaviridae/Figures/Tree_1000_170914.png"
-# output_fig_path="/user1/scl1/yanzeli/Megaviridae/Figures/Tree_1000_unscaled_170914.png"
+output_fig_path="/user1/scl1/yanzeli/Exchange/PP_tree_180228.png"
 
 #########################################
 line_width=6
 stick_width=15
-scale=600
-# scale=800
-log_scale=300 
+scale=330
+# scale=600
+log_scale=480
 color_scale=6 
 color_MIMI="Black"  
 
@@ -153,13 +194,14 @@ for node in Gen_from_left(MIMI_query_reasonable_ancestor):
         if size==1:
             node.detach()
             continue
-        stick_length=log_scale*math.log(size,10)
+        # stick_length=log_scale*math.log(size,10)
+        stick_length=log_scale*6
 
         for j in range(int(6*log_scale//color_scale)):
-            if j%(log_scale//color_scale)==0:
-                color="LightGrey"
-                node.add_face(RectFace(color_scale,1.5*stick_width,color,color), j, position="aligned")
-            elif j < stick_length/color_scale:
+            if j%int(6*log_scale//color_scale//60)==0:
+                color="White"
+                node.add_face(RectFace(color_scale,stick_width,color,color), j, position="aligned")      
+            elif OTU_barcode_table.iloc[:,j//int(6*log_scale//color_scale//60)][node.name.split("U")[0]] > 1:
                 color="#FF"+str(hex(255-j)).split("x")[-1].upper().zfill(2)+"00"
                 node.add_face(RectFace(color_scale,stick_width,color,color), j, position="aligned")
             else:
@@ -168,7 +210,7 @@ for node in Gen_from_left(MIMI_query_reasonable_ancestor):
 
     
 num_arr=["1","10","100","1k","10k","100k"]
-
+MIMI_query_reasonable_ancestor.render(output_fig_path,w=6400,units="px",tree_style=ts_sub_c)  
 for i in range(6):
     ts_sub_c.legend.add_face(RectFace(log_scale,2*stick_width,"White","White"),column=i+3)
     ts_sub_c.legend.add_face(TextFace(num_arr[i],fsize=100,fgcolor="Black"),column=i+3)

@@ -63,13 +63,15 @@ for seqr in SeqIO.parse(input_faa_with_ref_path, "fasta"):
 ###############################################################
 
 def Trim(seqr):
-    if seqr.id.startswith("MEGA"):
-        return None
+    # if seqr.id.startswith("MEGA"):
+        # return None
     left_char_pos = len(seqr.seq[:left_boundary].ungap("-"))
     right_char_pos = len(seqr.seq[:right_boundary].ungap("-"))
     seqr.seq = seqr.seq[left_boundary:right_boundary].ungap("-")
     if not len(seqr):
         return None
+    if seqr.id.startswith("MEGA"):
+        return seqr
     seqr.description = seqr.name = seqr.id = seqr.id + \
         'L' + str(left_char_pos) + 'R' + str(right_char_pos)
     return(seqr)
@@ -104,7 +106,7 @@ def Gen_str(pos_tup):
     
     #trim faa seqr and fliter empty result
     trimed_seqr_gen = (Trim(seqr) for seqr in SeqIO.parse(handle, "fasta"))        
-    trimed_seqr_arr =[seqr for seqr in trimed_seqr_gen if seqr if len(seqr) > 50]
+    trimed_seqr_arr =[ seqr for seqr in trimed_seqr_gen if seqr]
     
     #generate dict for trim fna
     # id_pos_tup_arr = [Get_id_pos_tup(seqr.id) for seqr in trimed_seqr_arr]
@@ -121,13 +123,13 @@ trim_fna_dic = {}
 output_file = open(output_faa_path, "w")
 for output_str in str_gen:
     output_file.write(output_str)
-    for line in output_str.split("\n"):
-        if line.startswith(">"):
-            trim_fna_dic[line.split("F")[0].strip(">")]=line.split("F")[1]
+    # for line in output_str.split("\n"):
+    #     if line.startswith(">"):
+    #         trim_fna_dic[line.split("F")[0].strip(">")]=line.split("F")[1]
 
 
 ##########################################################################
-
+sys.exit(0)
 
 def Trim_fna(seqr):
     try:

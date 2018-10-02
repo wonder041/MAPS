@@ -75,19 +75,20 @@ def Darw_various_identity():
         # identity_point_dic[identity]=(sample_size_arr, OTU_size_arr)
     with open("/aptmp/yanzeli/Paper_pipeline/Scripts/Post_process/identity_point_dic") as dic_file:
         identity_point_dic=json.load(dic_file)
-    plt.clf()    
+    plt.close()
+    plt.figure(figsize=(3.15,4),dpi=1000)
     for identity,(sample_size_arr, OTU_size_arr) in identity_point_dic.items():
         slope=Calc_slope(sample_size_arr,OTU_size_arr)
         lable=format(slope, '0.2f')+"/1M"
         # print(sample_size_arr, OTU_size_arr)
         plt.plot([x/1000000 for x in sample_size_arr],OTU_size_arr, label=str(identity)+"%")
-        plt.annotate(xy=[sample_size_arr[0]/1000000-1.8,OTU_size_arr[0]-1000],s=lable)
+        plt.annotate(xy=[sample_size_arr[0]/1000000-2.1,OTU_size_arr[0]-1200],s=lable)
 
     plt.ylabel('Number of OTUs Observed')
     plt.xlabel("Number of Reads Sampled (million reads)")
     plt.legend(title="Percent Identity",bbox_to_anchor=(1.05, 1), loc=2, fontsize=12)
     plt.legend(title="Identity",bbox_to_anchor=(0, 1), loc=2,fontsize=7)
-    plt.savefig("/user1/scl1/yanzeli/Megaviridae/Figures/Whole_rare4_170914.png",bbox_inches='tight',pad_inches=0.1,dpi=1000,orientation="portrait")
+    plt.savefig("/user1/scl1/yanzeli/Exchange/Figure_1.png",bbox_inches='tight',pad_inches=0.1,dpi=1000,orientation="portrait")
         
 
 def Darw_various_PP():
@@ -113,18 +114,18 @@ def Darw_various_PP():
     
     
     fig, axes = plt.subplots(12, 5)
-    fig.set_size_inches(21,30)
+    fig.set_size_inches(7.08,9.4)
     for num,PP in enumerate(PP_arr):
         points=PP_points_dic[PP]
         axes[num//5,num%5].plot([x/1000 for x in points[0]],points[1])
         axes[num//5,num%5].locator_params(axis='x', nbins=6)
         axes[num//5,num%5].locator_params(axis='y', nbins=4)
-        axes[num//5,num%5].text(1,0,PP,verticalalignment='bottom',horizontalalignment='right',transform=axes[num//5,num%5].transAxes,size=24 if "c" in PP else 48)
+        axes[num//5,num%5].text(1,0,PP,verticalalignment='bottom',horizontalalignment='right',transform=axes[num//5,num%5].transAxes,size=12 if "c" in PP else 24)
     
     # num+=1
     # axes[num//5,num%5].axis('off')
     # axes[num//5,num%5].text(1,0,"x-axis: Number of Reads Sampled \n(thousand reads)\ny-axis: Number of OTUs Observed\n(singleton OTUs are excluded)",verticalalignment='bottom',horizontalalignment='right',transform=axes[num//5,num%5].transAxes,size=12)
-    fig.savefig("/user1/scl1/yanzeli/Megaviridae/Figures/PP_rare_170913.png",bbox_inches="tight",dpi=600)
+    fig.savefig("/user1/scl1/yanzeli/Exchange/Figure_S2.png",bbox_inches="tight",dpi=1000)
 
     
 def Darw_various_samples():
@@ -179,8 +180,8 @@ def Darw_various_samples():
         
     
 if __name__ == "__main__":
-    Darw_various_identity()
-    # Darw_various_PP()
+    # Darw_various_identity()
+    Darw_various_PP()
     # Darw_various_samples()
     
     

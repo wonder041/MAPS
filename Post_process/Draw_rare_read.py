@@ -148,40 +148,19 @@ def Darw_various_samples():
         
         sample_points_dic[sample]=Calculate_point(size_arr)
         
-    plt.clf()
+    #plt.clf()
     
     for sample,(sample_size_arr, OTU_size_arr) in sample_points_dic.items():
         # sample_size_arr, OTU_size_arr=Calculate_point(size_arr)
         slope=Calc_slope(sample_size_arr,OTU_size_arr)
-        print(sample,slope)
-        # print(sample_size_arr, OTU_size_arr)
-        plt.plot([x/1000000 for x in sample_size_arr],OTU_size_arr, label=sample_description_dic[sample])
-        # print([sample_size_arr[0]/1000000-2,OTU_size_arr[0]-700])
-        
-        
-        annotation="reads:"+format(sample_size_arr[0], ',d')+" OTUs:"+format(int(OTU_size_arr[0]), ',d')+" slope:"+format(slope, '0.2f')
-        if sample=="S0":
-            plt.annotate(xy=[sample_size_arr[0]/1000000-3,OTU_size_arr[0]-500],s=sample_description_dic[sample])
-            plt.annotate(xy=[sample_size_arr[0]/1000000-3,OTU_size_arr[0]-750],s=annotation,fontsize=6)
-        elif sample=="S3":
-            plt.annotate(xy=[sample_size_arr[0]/1000000+0.2,OTU_size_arr[0]-150],s=sample_description_dic[sample])
-            plt.annotate(xy=[sample_size_arr[0]/1000000+0.2,OTU_size_arr[0]-400],s=annotation,fontsize=6)
-        else:
-            plt.annotate(xy=[sample_size_arr[0]/1000000+0.2,OTU_size_arr[0]],s=sample_description_dic[sample])
-            plt.annotate(xy=[sample_size_arr[0]/1000000+0.2,OTU_size_arr[0]-250],s=annotation,fontsize=6)
-
-    plt.ylabel('Number of OTUs Observed')
-    plt.xlabel("Number of Reads Sampled (million reads)")
-    plt.legend(title="Sampling point",bbox_to_anchor=(1, 0), loc=4, fontsize=10)
-    plt.savefig("/user1/scl1/yanzeli/Megaviridae/Figures/5samples_170907.png",bbox_inches='tight',pad_inches=0.1,dpi=1000,orientation="portrait")
-    
-
+        print(sample_description_dic[sample],max(sample_size_arr),max(OTU_size_arr))
+    return
         
     
 if __name__ == "__main__":
-    Darw_various_identity()
-    # Darw_various_PP()
-    # Darw_various_samples()
+    #Darw_various_identity()
+    #Darw_various_PP()
+    Darw_various_samples()
     
     
 
