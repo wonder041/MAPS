@@ -1,0 +1,17 @@
+diamond v0.9.9.110 | by Benjamin Buchfink <buchfink@gmail.com>
+Licensed under the GNU AGPL <https://www.gnu.org/licenses/agpl.txt>
+Check http://github.com/bbuchfink/diamond for updates.
+
+#CPU threads: 32
+Scoring parameters: (Matrix=BLOSUM62 Lambda=0.267 K=0.041 Penalties=11/1)
+Database file: /user1/scl1/yanzeli/aptmp/Paper_pipeline/References/PolB_homology_search.faa
+Opening the database file...  [0.007162s]
+Loading sequences...  [0.051658s]
+Masking sequences...  [0.134862s]
+Writing sequences...  [0.017283s]
+Loading sequences...  [4.6e-05s]
+Writing trailer...  [2.7e-05s]
+Closing the input file...  [0.000215s]
+Closing the database file...  [0.000579s]
+Processed 11413 sequences, 12731920 letters.
+Total time = 0.212154s
