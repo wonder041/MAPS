@@ -1,6 +1,0 @@
-#!/usr/bin/expect
-
-#spawn su ideas2 -c "qsub /user1/scl1/yanzeli/aptmp/Paper_pipeline/Scripts/qsub.sh"
-#spawn ssh ideas2@uv20.scl.genome.ad.jp
-#expect "*口令：" {send "ViPTree,1.0\r"}
-#interact
